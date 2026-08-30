@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>بيلد كوت — أكمل بيانات حسابك</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="./assets/icon.png" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'bc-green': '#5A7343',
+            'bc-green-dark': '#4A6035',
+            'bc-charcoal': '#1E2022',
+            'bc-gray': '#6B7280'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+
+<body class="font-sans bg-white text-bc-charcoal antialiased min-h-screen flex items-center justify-center px-4 py-10">
+
+  <!-- ═══════════════════════════════════════════
+       HEADER / NAVBAR
+  ═══════════════════════════════════════════ -->
+  <header id="site-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/90 backdrop-blur-md shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav class="flex items-center justify-between h-16">
+
+        <!-- Logo -->
+        <a href="./index-ar.html" id="nav-logo" class="flex items-center flex-shrink-0 group">
+          <img src="./assets/llogo.png" alt="شعار بيلد كوت" class="h-14 sm:h-16 w-auto object-contain" />
+        </a>
+
+        <!-- Desktop Nav Links -->
+        <ul class="hidden md:flex items-center gap-6 lg:gap-8" role="list">
+          <li><a href="./index-ar.html" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">الرئيسية</a></li>
+          <li><a href="./inventory-ar.html" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">المنتجات</a></li>
+          <li><a href="./buildcalc-ar.html" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">حاسبة BuildCalc</a></li>
+          <li><a href="./index-ar.html#orders" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">الطلبات</a></li>
+          <li><a href="./index-ar.html#contact" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">من نحن</a></li>
+        </ul>
+
+        <!-- Mobile Hamburger -->
+        <button id="hamburger-btn" class="md:hidden flex flex-col gap-1.5 p-2 rounded-lg hover:bg-gray-100 transition" aria-label="Toggle navigation" aria-expanded="false">
+          <span class="hamburger-line block w-6 h-0.5 bg-bc-charcoal transition-all duration-300"></span>
+          <span class="hamburger-line block w-6 h-0.5 bg-bc-charcoal transition-all duration-300"></span>
+          <span class="hamburger-line block w-6 h-0.5 bg-bc-charcoal transition-all duration-300"></span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Mobile Menu -->
+    <div id="mobile-menu"
+         class="md:hidden hidden bg-white/95 backdrop-blur-md border-t border-gray-100 transition-all duration-300">
+      <ul class="px-6 py-4 flex flex-col gap-3" role="list">
+        <li><a href="./index-ar.html" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">الرئيسية</a></li>
+        <li><a href="./inventory-ar.html" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">المنتجات</a></li>
+        <li><a href="./buildcalc-ar.html" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">حاسبة BuildCalc</a></li>
+        <li><a href="./index-ar.html#orders" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">الطلبات</a></li>
+        <li><a href="./index-ar.html#contact" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">من نحن</a></li>
+      </ul>
+    </div>
+  </header>
+
+  <main class="w-full max-w-md rounded-2xl border border-gray-100 shadow-xl p-6 sm:p-8">
+
+    <h1 class="text-3xl font-black mb-2">أكمل بيانات حسابك</h1>
+    <p class="text-bc-gray text-sm mb-6">
+      خطوة أخيرة بس. بنستخدم اسمك الحقيقي عشان نضمن دقة طلباتك وتوصيلاتك — من فضلك اكتبه زي ما هو في بطاقتك.
+    </p>
+
+    <form id="profile-form" class="space-y-4">
+      <div>
+        <label for="first-name" class="block text-sm font-bold mb-2">الاسم الأول</label>
+        <input
+          id="first-name"
+          type="text"
+          autocomplete="given-name"
+          required
+          placeholder="مثال: أحمد"
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-bc-green focus:ring-2 focus:ring-bc-green/20 outline-none"
+        />
+      </div>
+
+      <div>
+        <label for="middle-name" class="block text-sm font-bold mb-2">اسم الأب</label>
+        <input
+          id="middle-name"
+          type="text"
+          autocomplete="additional-name"
+          required
+          placeholder="مثال: محمد"
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-bc-green focus:ring-2 focus:ring-bc-green/20 outline-none"
+        />
+      </div>
+
+      <div>
+        <label for="last-name" class="block text-sm font-bold mb-2">اسم العائلة</label>
+        <input
+          id="last-name"
+          type="text"
+          autocomplete="family-name"
+          required
+          placeholder="مثال: حسن"
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-bc-green focus:ring-2 focus:ring-bc-green/20 outline-none"
+        />
+      </div>
+
+      <button
+        id="continue-btn"
+        type="submit"
+        class="w-full bg-bc-green hover:bg-bc-green-dark text-white font-bold py-3.5 rounded-full transition-all"
+      >
+        متابعة
+      </button>
+    </form>
+
+    <p id="profile-error" class="hidden mt-4 text-sm text-red-600 text-center" role="alert"></p>
+  </main>
+
+  <script src="./lang.js"></script>
+  <script src="./script.js"></script>
+  <script type="module" src="./auth-guard.js"></script>
+
+  <script type="module">
+    import { auth } from './firebase-config.js';
+    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+
+    const form = document.getElementById('profile-form');
+    const errorEl = document.getElementById('profile-error');
+
+    // This page requires an already-authenticated session (from Google,
+    // Facebook, or a pending traditional signup). If there's no user at all,
+    // there's nothing to attach a profile to.
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.replace('./login-ar.html');
+      }
+    });
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+      errorEl.classList.add('hidden');
+
+      const firstName = document.getElementById('first-name').value.trim();
+      const middleName = document.getElementById('middle-name').value.trim();
+      const lastName = document.getElementById('last-name').value.trim();
+
+      if (!firstName || !middleName || !lastName) {
+        errorEl.textContent = 'من فضلك املأ الحقول الثلاثة كلها.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      // Not saved to Firestore yet — this is carried forward to the phone
+      // verification step, where the profile is finalized and marked complete.
+      sessionStorage.setItem('buildcoat_pending_profile', JSON.stringify({
+        firstName,
+        middleName,
+        lastName,
+        fullName: `${firstName} ${middleName} ${lastName}`
+      }));
+
+      window.location.href = './phone-verify-ar.html';
+    });
+  </script>
+</body>
+</html>

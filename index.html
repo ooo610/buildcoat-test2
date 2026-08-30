@@ -105,13 +105,13 @@
         <li><a href="#contact" data-i18n="nav.about" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">Contact</a></li>
                 <!-- داخل #mobile-menu، بدل الـ <li> بتاع Sign In الحالي -->
         <li class="pt-2 flex gap-3">
-          <a href="index.html" class="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-bc-charcoal text-sm font-bold px-5 py-2.5 rounded-full hover:bg-gray-200 transition-all duration-200">
+          <a href="index-ar.html" class="flex-1 flex items-center justify-center gap-2 bg-gray-100 text-bc-charcoal text-sm font-bold px-5 py-2.5 rounded-full hover:bg-gray-200 transition-all duration-200">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129"></path></svg>
             <span>عربي</span>
           </a>
 
           <!-- الحالة: مش مسجل دخول -->
-          <a href="./login-ar.html" id="mobile-sign-in-btn" class="flex-1 flex items-center justify-center gap-2 bg-bc-green text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-bc-green-dark transition-all duration-200">
+          <a href="./login.html" id="mobile-sign-in-btn" class="flex-1 flex items-center justify-center gap-2 bg-bc-green text-white text-sm font-semibold px-5 py-2.5 rounded-full hover:bg-bc-green-dark transition-all duration-200">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             <span>Sign In</span>
           </a>
@@ -802,5 +802,6 @@
   <script src="lang.js"></script>
   <script src="script.js"></script>
   <script type="module" src="./auth-nav.js"></script>
+  <script type="module" src="./auth-guard.js"></script>
 </body>
 </html>

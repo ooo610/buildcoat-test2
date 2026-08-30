@@ -1,46 +1,38 @@
 <!DOCTYPE html>
-<!-- saved from url=(0076)file:///C:/Users/SCH/Documents/Codex/2026-08-11/ds/outputs/phone-verify.html -->
-<html lang="ar" dir="rtl"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>بيلد كوت — تأكيد رقم الهاتف</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com/">
-  <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
-  <link href="./بيلد كوت — تأكيد رقم الهاتف_files/css2" rel="stylesheet">
-<link rel="icon" type="image/png" href="./assets/icon.png" />
- 
-  <!-- Tailwind CSS CDN -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="./assets/icon.png" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       theme: {
         extend: {
           colors: {
-            /* ── Brand Palette ── */
-            'bc-green':       '#5A7343',   /* primary CTA green */
-            'bc-green-dark':  '#4A6035',   /* hover green */
-            'bc-green-light': '#6E8B52',   /* lighter green accent */
-            'bc-charcoal':    '#1E2022',   /* dark text / footer bg */
-            'bc-charcoal-mid':'#2D3135',   /* footer mid */
-            'bc-overlay':     'rgba(30,32,34,0.72)', /* card dark overlay */
-            'bc-gray':        '#6B7280',
-            'bc-light':       '#F5F5F0',   /* off-white section bg */
+            'bc-green': '#5A7343',
+            'bc-green-dark': '#4A6035',
+            'bc-charcoal': '#1E2022',
+            'bc-gray': '#6B7280'
           },
           fontFamily: {
-            sans:  ['Inter', 'sans-serif'],
-            brand: ['Montserrat', 'sans-serif'],
-          },
+            sans: ['Inter', 'sans-serif']
+          }
         }
       }
-    }
+    };
   </script>
-
-  <!-- Page-level styles (animations, custom utilities) -->
   <link rel="stylesheet" href="./style.css" />
+</head>
 
-<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.mb-2{margin-bottom:0.5rem}.mb-6{margin-bottom:1.5rem}.mt-2{margin-top:0.5rem}.mt-4{margin-top:1rem}.mt-6{margin-top:1.5rem}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.hidden{display:none}.min-h-screen{min-height:100vh}.w-full{width:100%}.max-w-md{max-width:28rem}.items-center{align-items:center}.justify-center{justify-content:center}.space-y-4 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(1rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(1rem * var(--tw-space-y-reverse))}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-gray-100{--tw-border-opacity:1;border-color:rgb(243 244 246 / var(--tw-border-opacity, 1))}.border-gray-300{--tw-border-opacity:1;border-color:rgb(209 213 219 / var(--tw-border-opacity, 1))}.bg-bc-green{--tw-bg-opacity:1;background-color:rgb(90 115 67 / var(--tw-bg-opacity, 1))}.bg-white{--tw-bg-opacity:1;background-color:rgb(255 255 255 / var(--tw-bg-opacity, 1))}.p-6{padding:1.5rem}.px-4{padding-left:1rem;padding-right:1rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}.py-3{padding-top:0.75rem;padding-bottom:0.75rem}.py-3\.5{padding-top:0.875rem;padding-bottom:0.875rem}.text-center{text-align:center}.font-arabic{font-family:Cairo, sans-serif}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.tracking-\[0\.4em\]{letter-spacing:0.4em}.text-bc-charcoal{--tw-text-opacity:1;color:rgb(30 32 34 / var(--tw-text-opacity, 1))}.text-bc-gray{--tw-text-opacity:1;color:rgb(107 114 128 / var(--tw-text-opacity, 1))}.text-bc-green{--tw-text-opacity:1;color:rgb(90 115 67 / var(--tw-text-opacity, 1))}.text-red-600{--tw-text-opacity:1;color:rgb(220 38 38 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.shadow-xl{--tw-shadow:0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 20px 25px -5px var(--tw-shadow-color), 0 8px 10px -6px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.outline-none{outline:2px solid transparent;outline-offset:2px}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.hover\:bg-bc-green-dark:hover{--tw-bg-opacity:1;background-color:rgb(74 96 53 / var(--tw-bg-opacity, 1))}.hover\:text-bc-green-dark:hover{--tw-text-opacity:1;color:rgb(74 96 53 / var(--tw-text-opacity, 1))}.focus\:border-bc-green:focus{--tw-border-opacity:1;border-color:rgb(90 115 67 / var(--tw-border-opacity, 1))}.focus\:ring-2:focus{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000)}.focus\:ring-bc-green\/20:focus{--tw-ring-color:rgb(90 115 67 / 0.2)}@media (min-width: 640px){.sm\:p-8{padding:2rem}}</style></head>
-<body class="font-arabic bg-white text-bc-charcoal antialiased min-h-screen flex items-center justify-center px-4 py-10">
-  
+<body class="font-sans bg-white text-bc-charcoal antialiased min-h-screen flex items-center justify-center px-4 py-10">
+
   <!-- ═══════════════════════════════════════════
        HEADER / NAVBAR
   ═══════════════════════════════════════════ -->
@@ -49,20 +41,19 @@
       <nav class="flex items-center justify-between h-16">
 
         <!-- Logo -->
-        <a href="./index.html" id="nav-logo" class="flex items-center flex-shrink-0 group">
+        <a href="./index-ar.html" id="nav-logo" class="flex items-center flex-shrink-0 group">
           <img src="./assets/llogo.png" alt="شعار بيلد كوت" class="h-14 sm:h-16 w-auto object-contain" />
         </a>
 
         <!-- Desktop Nav Links -->
         <ul class="hidden md:flex items-center gap-6 lg:gap-8" role="list">
-          <li><a href="./index.html" data-i18n="nav.home" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">الرئيسية</a></li>
-          <li><a href="./inventory.html" data-i18n="nav.inventory" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">المنتجات</a></li>
-          <li><a href="./buildcalc.html" data-i18n="nav.buildcalc" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">حاسبة BuildCalc</a></li>
-          <li><a href="#orders" data-i18n="nav.orders" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">الطلبات</a></li>
-          <li><a href="#contact" data-i18n="nav.about" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">من نحن</a></li>
+          <li><a href="./index-ar.html" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">الرئيسية</a></li>
+          <li><a href="./inventory-ar.html" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">المنتجات</a></li>
+          <li><a href="./buildcalc-ar.html" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">حاسبة BuildCalc</a></li>
+          <li><a href="./index-ar.html#orders" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">الطلبات</a></li>
+          <li><a href="./index-ar.html#contact" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">من نحن</a></li>
         </ul>
 
-        
         <!-- Mobile Hamburger -->
         <button id="hamburger-btn" class="md:hidden flex flex-col gap-1.5 p-2 rounded-lg hover:bg-gray-100 transition" aria-label="Toggle navigation" aria-expanded="false">
           <span class="hamburger-line block w-6 h-0.5 bg-bc-charcoal transition-all duration-300"></span>
@@ -76,120 +67,302 @@
     <div id="mobile-menu"
          class="md:hidden hidden bg-white/95 backdrop-blur-md border-t border-gray-100 transition-all duration-300">
       <ul class="px-6 py-4 flex flex-col gap-3" role="list">
-        <li><a href="./index.html" data-i18n="nav.home" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">الرئيسية</a></li>
-        <li><a href="./inventory.html" data-i18n="nav.inventory" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">المنتجات</a></li>
-        <li><a href="./buildcalc.html" data-i18n="nav.buildcalc" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">حاسبة BuildCalc</a></li>
-        <li><a href="#orders" data-i18n="nav.orders" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">الطلبات</a></li>
-        <li><a href="#contact" data-i18n="nav.about" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">من نحن</a></li>
-        
+        <li><a href="./index-ar.html" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">الرئيسية</a></li>
+        <li><a href="./inventory-ar.html" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">المنتجات</a></li>
+        <li><a href="./buildcalc-ar.html" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">حاسبة BuildCalc</a></li>
+        <li><a href="./index-ar.html#orders" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">الطلبات</a></li>
+        <li><a href="./index-ar.html#contact" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">من نحن</a></li>
       </ul>
     </div>
   </header>
 
-  
   <main class="w-full max-w-md rounded-2xl border border-gray-100 shadow-xl p-6 sm:p-8">
-    <a href="./signup-ar.html" class="inline-flex text-sm text-bc-green hover:text-bc-green-dark mb-6">← رجوع للتسجيل</a>
+
+    <a href="./signup-ar.html" id="back-link" class="inline-flex text-sm text-bc-green hover:text-bc-green-dark mb-6">
+      ← رجوع للتسجيل
+    </a>
+
     <h1 class="text-3xl font-black mb-2">تأكيد رقم الهاتف</h1>
-    <p class="text-bc-gray text-sm mb-6">هنبعت لك رسالة SMS فيها كود تأكيد. قد تطبق تكلفة الرسائل المعتادة.</p>
+    <p class="text-bc-gray text-sm mb-6">
+      هنبعت لك رسالة SMS فيها كود تأكيد. قد تُطبَّق تكلفة الرسائل المعتادة.
+    </p>
 
     <form id="phone-form" class="space-y-4">
       <div>
-        <label for="phone-number" class="block text-sm font-bold mb-2">رقم الهاتف</label>
-        <input id="phone-number" type="tel" inputmode="tel" autocomplete="tel" required="" placeholder="+201012345678" dir="ltr" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-bc-green focus:ring-2 focus:ring-bc-green/20 outline-none">
-        <p class="text-xs text-bc-gray mt-2">اكتب الرقم بالصيغة الدولية، مثال: +20 ثم الرقم المصري.</p>
+        <label for="phone-number" class="block text-sm font-bold mb-2">
+          رقم الهاتف
+        </label>
+
+        <input
+          id="phone-number"
+          type="tel"
+          inputmode="tel"
+          autocomplete="tel"
+          required
+          placeholder="+201012345678"
+          dir="ltr"
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-bc-green focus:ring-2 focus:ring-bc-green/20 outline-none"
+        />
+
+        <p class="text-xs text-bc-gray mt-2">
+          اكتب الرقم بالصيغة الدولية، مثال: +201012345678.
+        </p>
       </div>
-      <button id="send-code-btn" type="submit" class="w-full bg-bc-green hover:bg-bc-green-dark text-white font-bold py-3.5 rounded-full transition-all">إرسال الكود</button>
+
+      <button
+        id="send-code-btn"
+        type="submit"
+        class="w-full bg-bc-green hover:bg-bc-green-dark text-white font-bold py-3.5 rounded-full transition-all"
+      >
+        إرسال الكود
+      </button>
     </form>
 
     <form id="code-form" class="space-y-4 hidden mt-6">
       <div>
-        <label for="verification-code" class="block text-sm font-bold mb-2">كود التأكيد</label>
-        <input id="verification-code" type="text" inputmode="numeric" autocomplete="one-time-code" required="" maxlength="6" placeholder="123456" dir="ltr" class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-bc-green focus:ring-2 focus:ring-bc-green/20 outline-none text-center tracking-[0.4em]">
+        <label for="verification-code" class="block text-sm font-bold mb-2">
+          كود التأكيد
+        </label>
+
+        <input
+          id="verification-code"
+          type="text"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          required
+          maxlength="6"
+          placeholder="123456"
+          dir="ltr"
+          class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-bc-green focus:ring-2 focus:ring-bc-green/20 outline-none text-center tracking-[0.4em]"
+        />
       </div>
-      <button id="confirm-code-btn" type="submit" class="w-full bg-bc-green hover:bg-bc-green-dark text-white font-bold py-3.5 rounded-full transition-all">تأكيد وإنشاء الحساب</button>
+
+      <button
+        id="confirm-code-btn"
+        type="submit"
+        class="w-full bg-bc-green hover:bg-bc-green-dark text-white font-bold py-3.5 rounded-full transition-all"
+      >
+        تأكيد وإتمام
+      </button>
     </form>
 
     <div id="recaptcha-container" class="mt-4"></div>
+
     <p id="phone-error" class="hidden mt-4 text-sm text-red-600 text-center" role="alert"></p>
     <p id="phone-status" class="hidden mt-4 text-sm text-bc-green text-center" role="status"></p>
   </main>
 
+  <script src="./lang.js"></script>
+  <script src="./script.js"></script>
+  <script type="module" src="./auth-guard.js"></script>
+
   <script type="module">
-    import { auth } from './firebase-config.js';
+    import { auth, db } from './firebase-config.js';
     import {
       RecaptchaVerifier,
       signInWithPhoneNumber,
+      linkWithPhoneNumber,
       EmailAuthProvider,
       linkWithCredential,
-      updateProfile
+      updateProfile,
+      onAuthStateChanged
     } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+    import {
+      doc,
+      setDoc,
+      serverTimestamp
+    } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
-    const pendingRaw = sessionStorage.getItem('buildcoat_pending_signup');
-    if (!pendingRaw) window.location.replace('./signup-ar.html');
-    const pending = JSON.parse(pendingRaw || '{}');
+    // ── تحديد التدفق اللي جاب الزائر للصفحة دي ──
+    // 'signup' → تسجيل تقليدي بإيميل/باسورد (مفيش يوزر Firebase لسه).
+    // 'google' → الزائر مسجل دخول بالفعل (جوجل/فيسبوك) ومحتاج بس نربط
+    //            رقم التليفون ونحفظ اسمه الحقيقي.
+    const pendingSignupRaw = sessionStorage.getItem('buildcoat_pending_signup');
+    const pendingProfileRaw = sessionStorage.getItem('buildcoat_pending_profile');
+
+    let mode = null;
+    let pendingSignup = null;
+    let pendingProfile = null;
+
+    if (pendingSignupRaw) {
+      mode = 'signup';
+      pendingSignup = JSON.parse(pendingSignupRaw);
+    } else if (pendingProfileRaw) {
+      mode = 'google';
+      pendingProfile = JSON.parse(pendingProfileRaw);
+    } else {
+      window.location.replace('./signup-ar.html');
+    }
+
+    const backLink = document.getElementById('back-link');
+    if (mode === 'google') {
+      backLink.href = './complete-profile-ar.html';
+      backLink.textContent = '← رجوع';
+    }
+
     const phoneForm = document.getElementById('phone-form');
     const codeForm = document.getElementById('code-form');
     const errorEl = document.getElementById('phone-error');
     const statusEl = document.getElementById('phone-status');
+
     let confirmationResult;
+    let currentUser = null;
 
     auth.languageCode = 'ar';
-    const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'normal' });
+
+    const recaptchaVerifier = new RecaptchaVerifier(
+      auth,
+      'recaptcha-container',
+      { size: 'normal' }
+    );
+
+    // تدفق جوجل محتاج اليوزر المسجل دخول بالفعل قبل ما نقدر نربطله رقم تليفون.
+    if (mode === 'google') {
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (!user) {
+          window.location.replace('./login-ar.html');
+        }
+      });
+    }
 
     function showError(error) {
       const messages = {
-        'auth/invalid-phone-number': 'رقم الهاتف غير صحيح. استخدم الصيغة الدولية مثل +201012345678.',
-        'auth/invalid-verification-code': 'كود التأكيد غير صحيح.',
-        'auth/code-expired': 'انتهت صلاحية الكود. أرسل كوداً جديداً.',
-        'auth/too-many-requests': 'تم تجاوز عدد المحاولات المسموح. حاول لاحقاً.',
-        'auth/credential-already-in-use': 'هذا البريد الإلكتروني مرتبط بحساب آخر. سجّل الدخول بدلاً من ذلك.',
-        'auth/email-already-in-use': 'هذا البريد الإلكتروني مستخدم بالفعل. سجّل الدخول بدلاً من ذلك.'
+        'auth/invalid-phone-number':
+          'رقم الهاتف غير صحيح. استخدم الصيغة الدولية مثل +201012345678.',
+        'auth/invalid-verification-code':
+          'كود التأكيد غير صحيح.',
+        'auth/code-expired':
+          'انتهت صلاحية الكود. أرسل كوداً جديداً.',
+        'auth/too-many-requests':
+          'تم تجاوز عدد المحاولات المسموح. حاول لاحقاً.',
+        'auth/credential-already-in-use':
+          'هذا البريد الإلكتروني مرتبط بحساب آخر. سجّل الدخول بدلاً من ذلك.',
+        'auth/email-already-in-use':
+          'هذا البريد الإلكتروني مستخدم بالفعل. سجّل الدخول بدلاً من ذلك.',
+        'auth/provider-already-linked':
+          'يوجد رقم هاتف مرتبط بهذا الحساب بالفعل.',
+        'auth/no-current-user':
+          'انتهت صلاحية الجلسة. سجّل الدخول مرة أخرى.'
       };
+
       errorEl.textContent = messages[error.code] || 'حصل خطأ. حاول مرة أخرى.';
       errorEl.classList.remove('hidden');
       statusEl.classList.add('hidden');
     }
+
     function setBusy(button, busy, label) {
       button.disabled = busy;
       button.classList.toggle('opacity-60', busy);
-      if (busy) button.dataset.label = button.textContent;
+
+      if (busy) {
+        button.dataset.label = button.textContent;
+      }
+
       button.textContent = busy ? label : button.dataset.label;
     }
 
-    phoneForm.addEventListener('submit', async (event) => {
+    phoneForm.addEventListener('submit', async function (event) {
       event.preventDefault();
+
       errorEl.classList.add('hidden');
+
       const button = document.getElementById('send-code-btn');
       const phone = document.getElementById('phone-number').value.trim();
-      if (!/^\+[1-9]\d{7,14}$/.test(phone)) return showError({ code: 'auth/invalid-phone-number' });
+
+      if (!/^\+[1-9]\d{7,14}$/.test(phone)) {
+        showError({ code: 'auth/invalid-phone-number' });
+        return;
+      }
+
       try {
         setBusy(button, true, 'جاري الإرسال...');
-        confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+
+        if (mode === 'google') {
+          if (!currentUser) {
+            throw { code: 'auth/no-current-user' };
+          }
+          confirmationResult = await linkWithPhoneNumber(currentUser, phone, recaptchaVerifier);
+        } else {
+          confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+        }
+
         phoneForm.classList.add('hidden');
         codeForm.classList.remove('hidden');
-        statusEl.textContent = 'تم إرسال الكود. أدخله لإتمام إنشاء الحساب.';
+
+        statusEl.textContent = 'تم إرسال الكود. أدخله تحت لإتمام العملية.';
         statusEl.classList.remove('hidden');
       } catch (error) {
         showError(error);
-        recaptchaVerifier.render().then((widgetId) => grecaptcha.reset(widgetId));
+
+        recaptchaVerifier.render().then(function (widgetId) {
+          grecaptcha.reset(widgetId);
+        });
       } finally {
         setBusy(button, false);
       }
     });
 
-    codeForm.addEventListener('submit', async (event) => {
+    codeForm.addEventListener('submit', async function (event) {
       event.preventDefault();
+
       const button = document.getElementById('confirm-code-btn');
       const code = document.getElementById('verification-code').value.trim();
-      if (!confirmationResult || !/^\d{6}$/.test(code)) return showError({ code: 'auth/invalid-verification-code' });
+
+      if (!confirmationResult || !/^\d{6}$/.test(code)) {
+        showError({ code: 'auth/invalid-verification-code' });
+        return;
+      }
+
       try {
-        setBusy(button, true, 'جاري تأكيد الحساب...');
-        // تأكيد الـSMS ينشئ/يسجّل حساب الهاتف، ثم نربط به الإيميل والباسورد في نفس UID.
-        const phoneResult = await confirmationResult.confirm(code);
-        const emailCredential = EmailAuthProvider.credential(pending.email, pending.password);
-        const linkedResult = await linkWithCredential(phoneResult.user, emailCredential);
-        await updateProfile(linkedResult.user, { displayName: pending.displayName });
-        sessionStorage.removeItem('buildcoat_pending_signup');
+        setBusy(button, true, 'جاري التأكيد...');
+
+        if (mode === 'google') {
+          // بيربط رقم التليفون مباشرة باليوزر المسجل دخول بالفعل بجوجل/فيسبوك
+          // — من غير ما يتعمل حساب جديد.
+          const linkedResult = await confirmationResult.confirm(code);
+          const finalUser = linkedResult.user;
+
+          await updateProfile(finalUser, { displayName: pendingProfile.fullName });
+
+          await setDoc(doc(db, 'users', finalUser.uid), {
+            firstName: pendingProfile.firstName,
+            middleName: pendingProfile.middleName,
+            lastName: pendingProfile.lastName,
+            fullName: pendingProfile.fullName,
+            phoneNumber: finalUser.phoneNumber,
+            email: finalUser.email || null,
+            profileComplete: true,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
+
+          sessionStorage.removeItem('buildcoat_pending_profile');
+        } else {
+          // التسجيل التقليدي: تأكيد الهاتف بينشئ اليوزر، وبعدين بنربطله
+          // بيانات الإيميل/الباسورد على نفس اليوزر.
+          const phoneResult = await confirmationResult.confirm(code);
+
+          const emailCredential = EmailAuthProvider.credential(
+            pendingSignup.email,
+            pendingSignup.password
+          );
+
+          const linkedResult = await linkWithCredential(phoneResult.user, emailCredential);
+          const finalUser = linkedResult.user;
+
+          await updateProfile(finalUser, { displayName: pendingSignup.displayName });
+
+          await setDoc(doc(db, 'users', finalUser.uid), {
+            fullName: pendingSignup.displayName,
+            phoneNumber: finalUser.phoneNumber,
+            email: finalUser.email || null,
+            profileComplete: true,
+            createdAt: serverTimestamp()
+          }, { merge: true });
+
+          sessionStorage.removeItem('buildcoat_pending_signup');
+        }
+
         window.location.replace('./index-ar.html');
       } catch (error) {
         showError(error);
@@ -198,6 +371,5 @@
       }
     });
   </script>
-
-
-</body></html>
+</body>
+</html>

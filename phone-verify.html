@@ -8,7 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
-<link rel="icon" type="image/png" href="./assets/icon.png" />
+  <link rel="icon" type="image/png" href="./assets/icon.png" />
+
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -27,13 +28,12 @@
       }
     };
   </script>
-    <!-- Page-level styles (animations, custom utilities) -->
   <link rel="stylesheet" href="./style.css" />
 </head>
 
 <body class="font-sans bg-white text-bc-charcoal antialiased min-h-screen flex items-center justify-center px-4 py-10">
- 
- <!-- ═══════════════════════════════════════════
+
+  <!-- ═══════════════════════════════════════════
        HEADER / NAVBAR
   ═══════════════════════════════════════════ -->
   <header id="site-header" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/90 backdrop-blur-md shadow-sm">
@@ -47,14 +47,12 @@
 
         <!-- Desktop Nav Links -->
         <ul class="hidden md:flex items-center gap-6 lg:gap-8" role="list">
-          <li><a href="./index.html" data-i18n="nav.home" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">Home</a></li>
-          <li><a href="./inventory.html" data-i18n="nav.inventory" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">Inventory</a></li>
-          <li><a href="./buildcalc.html" data-i18n="nav.buildcalc" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">BuildCalc</a></li>
-          <li><a href="#orders" data-i18n="nav.orders" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">Orders</a></li>
-          <li><a href="#contact" data-i18n="nav.about" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">About</a></li>
+          <li><a href="./index.html" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">Home</a></li>
+          <li><a href="./inventory.html" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">Inventory</a></li>
+          <li><a href="./buildcalc.html" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">BuildCalc</a></li>
+          <li><a href="#orders" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">Orders</a></li>
+          <li><a href="#contact" class="nav-link text-sm font-medium text-bc-charcoal hover:text-bc-green transition-colors duration-200">About</a></li>
         </ul>
-
-        
 
         <!-- Mobile Hamburger -->
         <button id="hamburger-btn" class="md:hidden flex flex-col gap-1.5 p-2 rounded-lg hover:bg-gray-100 transition" aria-label="Toggle navigation" aria-expanded="false">
@@ -69,21 +67,18 @@
     <div id="mobile-menu"
          class="md:hidden hidden bg-white/95 backdrop-blur-md border-t border-gray-100 transition-all duration-300">
       <ul class="px-6 py-4 flex flex-col gap-3" role="list">
-        <li><a href="./index.html" data-i18n="nav.home" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">Home</a></li>
-        <li><a href="./inventory.html" data-i18n="nav.inventory" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">Inventory</a></li>
-        <li><a href="./buildcalc.html" data-i18n="nav.buildcalc" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">BuildCalc</a></li>
-        <li><a href="#orders" data-i18n="nav.orders" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">Orders</a></li>
-        <li><a href="#contact" data-i18n="nav.about" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">Contact</a></li>
-        
+        <li><a href="./index.html" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">Home</a></li>
+        <li><a href="./inventory.html" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">Inventory</a></li>
+        <li><a href="./buildcalc.html" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">BuildCalc</a></li>
+        <li><a href="#orders" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">Orders</a></li>
+        <li><a href="#contact" class="block text-sm font-medium py-2 text-bc-charcoal hover:text-bc-green transition-colors" onclick="closeMobileMenu()">Contact</a></li>
       </ul>
     </div>
   </header>
 
- 
- 
-    <main class="w-full max-w-md rounded-2xl border border-gray-100 shadow-xl p-6 sm:p-8">
+  <main class="w-full max-w-md rounded-2xl border border-gray-100 shadow-xl p-6 sm:p-8">
 
-    <a href="./signup.html" class="inline-flex text-sm text-bc-green hover:text-bc-green-dark mb-6">
+    <a href="./signup.html" id="back-link" class="inline-flex text-sm text-bc-green hover:text-bc-green-dark mb-6">
       ← Back to sign up
     </a>
 
@@ -147,7 +142,7 @@
         type="submit"
         class="w-full bg-bc-green hover:bg-bc-green-dark text-white font-bold py-3.5 rounded-full transition-all"
       >
-        Verify and create account
+        Verify and finish
       </button>
     </form>
 
@@ -157,29 +152,61 @@
     <p id="phone-status" class="hidden mt-4 text-sm text-bc-green text-center" role="status"></p>
   </main>
 
+  <script src="./lang.js"></script>
+  <script src="./script.js"></script>
+  <script type="module" src="./auth-guard.js"></script>
+
   <script type="module">
-    import { auth } from './firebase-config.js';
+    import { auth, db } from './firebase-config.js';
     import {
       RecaptchaVerifier,
       signInWithPhoneNumber,
+      linkWithPhoneNumber,
       EmailAuthProvider,
       linkWithCredential,
-      updateProfile
+      updateProfile,
+      onAuthStateChanged
     } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
+    import {
+      doc,
+      setDoc,
+      serverTimestamp
+    } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
-    const pendingRaw = sessionStorage.getItem('buildcoat_pending_signup');
+    // ── Determine which flow brought the visitor here ──
+    // 'signup' → traditional email/password signup (no Firebase user yet).
+    // 'google' → the visitor is already signed in (Google/Facebook) and
+    //            just needs a phone number linked + their real name saved.
+    const pendingSignupRaw = sessionStorage.getItem('buildcoat_pending_signup');
+    const pendingProfileRaw = sessionStorage.getItem('buildcoat_pending_profile');
 
-    if (!pendingRaw) {
+    let mode = null;
+    let pendingSignup = null;
+    let pendingProfile = null;
+
+    if (pendingSignupRaw) {
+      mode = 'signup';
+      pendingSignup = JSON.parse(pendingSignupRaw);
+    } else if (pendingProfileRaw) {
+      mode = 'google';
+      pendingProfile = JSON.parse(pendingProfileRaw);
+    } else {
       window.location.replace('./signup.html');
     }
 
-    const pending = JSON.parse(pendingRaw || '{}');
+    const backLink = document.getElementById('back-link');
+    if (mode === 'google') {
+      backLink.href = './complete-profile.html';
+      backLink.textContent = '← Back';
+    }
+
     const phoneForm = document.getElementById('phone-form');
     const codeForm = document.getElementById('code-form');
     const errorEl = document.getElementById('phone-error');
     const statusEl = document.getElementById('phone-status');
 
     let confirmationResult;
+    let currentUser = null;
 
     auth.languageCode = 'en';
 
@@ -188,6 +215,17 @@
       'recaptcha-container',
       { size: 'normal' }
     );
+
+    // The Google flow needs the already-signed-in user before we can link
+    // a phone number to their account.
+    if (mode === 'google') {
+      onAuthStateChanged(auth, (user) => {
+        currentUser = user;
+        if (!user) {
+          window.location.replace('./login.html');
+        }
+      });
+    }
 
     function showError(error) {
       const messages = {
@@ -202,7 +240,11 @@
         'auth/credential-already-in-use':
           'This email address is already linked to another account. Please sign in instead.',
         'auth/email-already-in-use':
-          'This email address is already in use. Please sign in instead.'
+          'This email address is already in use. Please sign in instead.',
+        'auth/provider-already-linked':
+          'A phone number is already linked to this account.',
+        'auth/no-current-user':
+          'Your session expired. Please sign in again.'
       };
 
       errorEl.textContent = messages[error.code] || 'Something went wrong. Please try again.';
@@ -237,17 +279,20 @@
       try {
         setBusy(button, true, 'Sending...');
 
-        confirmationResult = await signInWithPhoneNumber(
-          auth,
-          phone,
-          recaptchaVerifier
-        );
+        if (mode === 'google') {
+          if (!currentUser) {
+            throw { code: 'auth/no-current-user' };
+          }
+          confirmationResult = await linkWithPhoneNumber(currentUser, phone, recaptchaVerifier);
+        } else {
+          confirmationResult = await signInWithPhoneNumber(auth, phone, recaptchaVerifier);
+        }
 
         phoneForm.classList.add('hidden');
         codeForm.classList.remove('hidden');
 
         statusEl.textContent =
-          'A verification code has been sent. Enter it to finish creating your account.';
+          'A verification code has been sent. Enter it below to finish.';
         statusEl.classList.remove('hidden');
       } catch (error) {
         showError(error);
@@ -272,25 +317,53 @@
       }
 
       try {
-        setBusy(button, true, 'Verifying account...');
+        setBusy(button, true, 'Verifying...');
 
-        const phoneResult = await confirmationResult.confirm(code);
+        if (mode === 'google') {
+          // Links the phone number directly to the already-authenticated
+          // Google/Facebook user — no new account is created.
+          const linkedResult = await confirmationResult.confirm(code);
+          const finalUser = linkedResult.user;
 
-        const emailCredential = EmailAuthProvider.credential(
-          pending.email,
-          pending.password
-        );
+          await updateProfile(finalUser, { displayName: pendingProfile.fullName });
 
-        const linkedResult = await linkWithCredential(
-          phoneResult.user,
-          emailCredential
-        );
+          await setDoc(doc(db, 'users', finalUser.uid), {
+            firstName: pendingProfile.firstName,
+            middleName: pendingProfile.middleName,
+            lastName: pendingProfile.lastName,
+            fullName: pendingProfile.fullName,
+            phoneNumber: finalUser.phoneNumber,
+            email: finalUser.email || null,
+            profileComplete: true,
+            updatedAt: serverTimestamp()
+          }, { merge: true });
 
-        await updateProfile(linkedResult.user, {
-          displayName: pending.displayName
-        });
+          sessionStorage.removeItem('buildcoat_pending_profile');
+        } else {
+          // Traditional signup: the phone confirmation creates the user,
+          // then the email/password credential gets linked to that same user.
+          const phoneResult = await confirmationResult.confirm(code);
 
-        sessionStorage.removeItem('buildcoat_pending_signup');
+          const emailCredential = EmailAuthProvider.credential(
+            pendingSignup.email,
+            pendingSignup.password
+          );
+
+          const linkedResult = await linkWithCredential(phoneResult.user, emailCredential);
+          const finalUser = linkedResult.user;
+
+          await updateProfile(finalUser, { displayName: pendingSignup.displayName });
+
+          await setDoc(doc(db, 'users', finalUser.uid), {
+            fullName: pendingSignup.displayName,
+            phoneNumber: finalUser.phoneNumber,
+            email: finalUser.email || null,
+            profileComplete: true,
+            createdAt: serverTimestamp()
+          }, { merge: true });
+
+          sessionStorage.removeItem('buildcoat_pending_signup');
+        }
 
         window.location.replace('./index.html');
       } catch (error) {
