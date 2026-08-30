@@ -381,9 +381,8 @@
   <script type="module" src="./auth-guard.js"></script>
 <!-- Firebase Authentication -->
 <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-app.js";
+  import { auth, db } from './firebase-config.js';
   import {
-    getAuth,
     signInWithEmailAndPassword,
     signInWithPopup,
     GoogleAuthProvider,
@@ -392,24 +391,10 @@
     browserSessionPersistence
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
   import {
-    getFirestore,
     doc,
     getDoc
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyCUkWudLdS-LbMOZY0zqvFm-Td73eaNjL4",
-    authDomain: "buildcoat-4b519.firebaseapp.com",
-    projectId: "buildcoat-4b519",
-    storageBucket: "buildcoat-4b519.firebasestorage.app",
-    messagingSenderId: "163630785238",
-    appId: "1:163630785238:web:48a4df37df902980f31f77",
-    measurementId: "G-2YC6CPGJNK"
-  };
-
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db   = getFirestore(app);
   const googleProvider = new GoogleAuthProvider();
 
   const errorEl = document.getElementById('login-error');

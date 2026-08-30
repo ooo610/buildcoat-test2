@@ -353,6 +353,9 @@
           await updateProfile(finalUser, { displayName: pendingSignup.displayName });
 
           await setDoc(doc(db, 'users', finalUser.uid), {
+            firstName: pendingSignup.firstName,
+            middleName: pendingSignup.middleName,
+            lastName: pendingSignup.lastName,
             fullName: pendingSignup.displayName,
             phoneNumber: finalUser.phoneNumber,
             email: finalUser.email || null,

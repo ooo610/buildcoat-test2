@@ -335,6 +335,9 @@
     sessionStorage.setItem('buildcoat_pending_signup', JSON.stringify({
       email: email,
       password: password,
+      firstName: firstName,
+      middleName: middleName,
+      lastName: lastName,
       displayName: [firstName, middleName, lastName].filter(Boolean).join(' ')
     }));
 
