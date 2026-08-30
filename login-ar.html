@@ -391,6 +391,11 @@
       browserLocalPersistence,
       browserSessionPersistence
     } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
     // Your web app's Firebase configuration
     const firebaseConfig = {
@@ -405,6 +410,7 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
+    const db   = getFirestore(app);
     const googleProvider = new GoogleAuthProvider();
 
     const errorEl = document.getElementById('login-error');
@@ -433,9 +439,21 @@
       errorEl.classList.remove('hidden');
     }
 
-    function goToDashboard(user) {
-      console.log('Signed in:', user.uid);
-      window.location.href = './index-ar.html';   // لاحظ استخدام index-ar.html مش index.html
+    // بعد تسجيل الدخول، بنسأل Firestore الأول: البروفايل مكتمل ولا لأ؟
+    async function goToDashboard(user) {
+      try {
+        const snap = await getDoc(doc(db, 'users', user.uid));
+        const profileComplete = snap.exists() && snap.data().profileComplete === true;
+        if (profileComplete) {
+          window.location.href = './index-ar.html';
+        } else {
+          window.location.href = './complete-profile-ar.html';
+        }
+      } catch (err) {
+        // Firestore مش متاح — نبعته لصفحة إكمال البروفايل كـ fallback آمن
+        console.error('فحص البروفايل فشل، التوجيه لصفحة الإكمال:', err);
+        window.location.href = './complete-profile-ar.html';
+      }
     }
 
     // "تذكرني" مفعّلة → الجلسة تفضل حتى بعد ما يقفل المتصفح (browserLocalPersistence).

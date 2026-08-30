@@ -391,6 +391,11 @@
     browserLocalPersistence,
     browserSessionPersistence
   } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc
+  } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCUkWudLdS-LbMOZY0zqvFm-Td73eaNjL4",
@@ -404,6 +409,7 @@
 
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
+  const db   = getFirestore(app);
   const googleProvider = new GoogleAuthProvider();
 
   const errorEl = document.getElementById('login-error');
@@ -436,9 +442,22 @@
     errorEl.classList.remove('hidden');
   }
 
-  function goToDashboard(user) {
-    console.log('Signed in:', user.uid);
-    window.location.href = './index.html';
+  // After sign-in, check Firestore to decide where to send the user.
+  // If profileComplete is not set to true, redirect to complete-profile.
+  async function goToDashboard(user) {
+    try {
+      const snap = await getDoc(doc(db, 'users', user.uid));
+      const profileComplete = snap.exists() && snap.data().profileComplete === true;
+      if (profileComplete) {
+        window.location.href = './index.html';
+      } else {
+        window.location.href = './complete-profile.html';
+      }
+    } catch (err) {
+      // Firestore unreachable — fall back to safe onboarding page
+      console.error('Profile check failed, redirecting to complete-profile:', err);
+      window.location.href = './complete-profile.html';
+    }
   }
 
   function applyRememberMePreference() {
