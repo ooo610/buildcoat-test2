@@ -423,10 +423,17 @@
       errorEl.classList.remove('hidden');
     }
 
+    // Helper to add a timeout to promises
+    const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
+
     // بعد تسجيل الدخول، بنسأل Firestore الأول: البروفايل مكتمل ولا لأ؟
     async function goToDashboard(user) {
       try {
-        const snap = await getDoc(doc(db, 'users', user.uid));
+        const snap = await Promise.race([
+          getDoc(doc(db, 'users', user.uid)),
+          timeout(5000)
+        ]);
+        
         const profileComplete = snap.exists() && snap.data().profileComplete === true;
         if (profileComplete) {
           window.location.href = './index-ar.html';
@@ -435,8 +442,23 @@
         }
       } catch (err) {
         // Firestore مش متاح — نبعته لصفحة إكمال البروفايل كـ fallback آمن
-        console.error('فحص البروفايل فشل، التوجيه لصفحة الإكمال:', err);
+        console.error('فحص البروفايل فشل أو تأخر، التوجيه لصفحة الإكمال:', err);
         window.location.href = './complete-profile-ar.html';
+      }
+    }
+
+    function setButtonLoading(btnId, isLoading) {
+      const btn = document.getElementById(btnId);
+      if (!btn) return;
+      if (isLoading) {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.innerHTML;
+        btn.innerHTML = '<svg class="animate-spin h-5 w-5 mx-auto text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>';
+      } else {
+        btn.disabled = false;
+        if (btn.dataset.originalText) {
+          btn.innerHTML = btn.dataset.originalText;
+        }
       }
     }
 
@@ -455,20 +477,30 @@
       const email = document.getElementById('login-email').value;
       const password = document.getElementById('login-password').value;
       errorEl.classList.add('hidden');
+      
+      setButtonLoading('login-btn', true);
 
       applyRememberMePreference()
         .then(() => signInWithEmailAndPassword(auth, email, password))
         .then((result) => goToDashboard(result.user))
-        .catch(showError);
+        .catch((error) => {
+          setButtonLoading('login-btn', false);
+          showError(error);
+        });
     });
 
     // Google login
     document.getElementById('google-login-btn').addEventListener('click', function () {
       errorEl.classList.add('hidden');
+      setButtonLoading('google-login-btn', true);
+      
       applyRememberMePreference()
         .then(() => signInWithPopup(auth, googleProvider))
         .then((result) => goToDashboard(result.user))
-        .catch(showError);
+        .catch((error) => {
+          setButtonLoading('google-login-btn', false);
+          showError(error);
+        });
     });
 
     // Facebook isn't enabled in the Firebase console yet, so this stays a
