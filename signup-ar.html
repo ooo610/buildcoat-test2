@@ -326,8 +326,19 @@
     const password = document.getElementById('signup-password').value;
     const confirmPassword = document.getElementById('signup-confirm-password').value;
 
+    const errorEl = document.getElementById('signup-error');
+    errorEl.classList.add('hidden');
+
     if (password !== confirmPassword) {
-      alert('كلمتا المرور غير متطابقتين.');
+      errorEl.textContent = 'كلمتا المرور غير متطابقتين.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      errorEl.textContent = 'كلمة المرور يجب أن تكون 8 أحرف على الأقل، وتحتوي على حرف كبير، حرف صغير، ورمز خاص.';
+      errorEl.classList.remove('hidden');
       return;
     }
 

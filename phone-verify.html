@@ -327,16 +327,26 @@
 
           await updateProfile(finalUser, { displayName: pendingProfile.fullName });
 
-          await setDoc(doc(db, 'users', finalUser.uid), {
-            firstName: pendingProfile.firstName,
-            middleName: pendingProfile.middleName,
-            lastName: pendingProfile.lastName,
-            fullName: pendingProfile.fullName,
-            phoneNumber: finalUser.phoneNumber,
-            email: finalUser.email || null,
-            profileComplete: true,
-            updatedAt: serverTimestamp()
-          }, { merge: true });
+          // Helper timeout function
+          const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
+
+          try {
+            await Promise.race([
+              setDoc(doc(db, 'users', finalUser.uid), {
+                firstName: pendingProfile.firstName,
+                middleName: pendingProfile.middleName,
+                lastName: pendingProfile.lastName,
+                fullName: pendingProfile.fullName,
+                phoneNumber: finalUser.phoneNumber,
+                email: finalUser.email || null,
+                profileComplete: true,
+                updatedAt: serverTimestamp()
+              }, { merge: true }),
+              timeout(8000)
+            ]);
+          } catch (e) {
+            console.warn("Firestore setDoc timed out or failed, but auth linking succeeded.", e);
+          }
 
           sessionStorage.removeItem('buildcoat_pending_profile');
         } else {
@@ -354,16 +364,26 @@
 
           await updateProfile(finalUser, { displayName: pendingSignup.displayName });
 
-          await setDoc(doc(db, 'users', finalUser.uid), {
-            firstName: pendingSignup.firstName,
-            middleName: pendingSignup.middleName,
-            lastName: pendingSignup.lastName,
-            fullName: pendingSignup.displayName,
-            phoneNumber: finalUser.phoneNumber,
-            email: finalUser.email || null,
-            profileComplete: true,
-            createdAt: serverTimestamp()
-          }, { merge: true });
+          // Helper timeout function
+          const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
+
+          try {
+            await Promise.race([
+              setDoc(doc(db, 'users', finalUser.uid), {
+                firstName: pendingSignup.firstName,
+                middleName: pendingSignup.middleName,
+                lastName: pendingSignup.lastName,
+                fullName: pendingSignup.displayName,
+                phoneNumber: finalUser.phoneNumber,
+                email: finalUser.email || null,
+                profileComplete: true,
+                createdAt: serverTimestamp()
+              }, { merge: true }),
+              timeout(8000)
+            ]);
+          } catch (e) {
+            console.warn("Firestore setDoc timed out or failed, but auth linking succeeded.", e);
+          }
 
           sessionStorage.removeItem('buildcoat_pending_signup');
         }

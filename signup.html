@@ -327,8 +327,19 @@
     const password = document.getElementById('signup-password').value;
     const confirmPassword = document.getElementById('signup-confirm-password').value;
 
+    const errorEl = document.getElementById('signup-error');
+    errorEl.classList.add('hidden');
+
     if (password !== confirmPassword) {
-      alert('Passwords do not match.');
+      errorEl.textContent = 'Passwords do not match.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[^a-zA-Z0-9]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      errorEl.textContent = 'Password must be at least 8 characters and include uppercase, lowercase, and a special character.';
+      errorEl.classList.remove('hidden');
       return;
     }
 
