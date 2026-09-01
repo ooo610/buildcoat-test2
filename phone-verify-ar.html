@@ -156,7 +156,7 @@
   <script src="./script.js"></script>
   <script type="module" src="./auth-guard.js"></script>
 
-  <script type="module">
+<script type="module">
     import { auth, db } from './firebase-config.js';
     import {
       RecaptchaVerifier,
@@ -346,6 +346,14 @@
             console.warn("Firestore setDoc timed out or failed, but auth linking succeeded.", e);
           }
 
+          // تسجيل الرقم في فهرس البحث الخفيف عشان محاولات الدخول الجاية
+          // تقدر تتأكد إنه موجود من غير ما تكشف أي بيانات لليوزر.
+          try {
+            await setDoc(doc(db, 'phoneIndex', finalUser.phoneNumber), { exists: true });
+          } catch (e) {
+            console.warn('phoneIndex write failed (non-fatal):', e);
+          }
+
           sessionStorage.removeItem('buildcoat_pending_profile');
         } else {
           // التسجيل التقليدي: تأكيد الهاتف بينشئ اليوزر، وبعدين بنربطله
@@ -381,6 +389,14 @@
             ]);
           } catch (e) {
             console.warn("Firestore setDoc timed out or failed, but auth linking succeeded.", e);
+          }
+
+          // تسجيل الرقم في فهرس البحث الخفيف عشان محاولات الدخول الجاية
+          // تقدر تتأكد إنه موجود من غير ما تكشف أي بيانات لليوزر.
+          try {
+            await setDoc(doc(db, 'phoneIndex', finalUser.phoneNumber), { exists: true });
+          } catch (e) {
+            console.warn('phoneIndex write failed (non-fatal):', e);
           }
 
           sessionStorage.removeItem('buildcoat_pending_signup');

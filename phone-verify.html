@@ -156,7 +156,7 @@
   <script src="./script.js"></script>
   <script type="module" src="./auth-guard.js"></script>
 
-  <script type="module">
+<script type="module">
     import { auth, db } from './firebase-config.js';
     import {
       RecaptchaVerifier,
@@ -348,6 +348,14 @@
             console.warn("Firestore setDoc timed out or failed, but auth linking succeeded.", e);
           }
 
+          // Register this number in the lightweight lookup index so future
+          // logins can confirm it exists without exposing any user data.
+          try {
+            await setDoc(doc(db, 'phoneIndex', finalUser.phoneNumber), { exists: true });
+          } catch (e) {
+            console.warn('phoneIndex write failed (non-fatal):', e);
+          }
+
           sessionStorage.removeItem('buildcoat_pending_profile');
         } else {
           // Traditional signup: the phone confirmation creates the user,
@@ -383,6 +391,14 @@
             ]);
           } catch (e) {
             console.warn("Firestore setDoc timed out or failed, but auth linking succeeded.", e);
+          }
+
+          // Register this number in the lightweight lookup index so future
+          // logins can confirm it exists without exposing any user data.
+          try {
+            await setDoc(doc(db, 'phoneIndex', finalUser.phoneNumber), { exists: true });
+          } catch (e) {
+            console.warn('phoneIndex write failed (non-fatal):', e);
           }
 
           sessionStorage.removeItem('buildcoat_pending_signup');

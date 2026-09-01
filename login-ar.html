@@ -363,7 +363,7 @@
   <script src="./script.js"></script>
   <script type="module" src="./auth-guard.js"></script>
 
-  <!-- Tab switching -->
+<!-- Tab switching -->
   <script>
     const tabEmailBtn = document.getElementById('tab-email-btn');
     const tabPhoneBtn = document.getElementById('tab-phone-btn');
@@ -437,6 +437,9 @@
           break;
         case 'auth/code-expired':
           message = 'الكود ده منتهي الصلاحية، اطلب كود جديد.';
+          break;
+        case 'auth/phone-not-registered':
+          message = 'هذا الرقم غير مسجل. من فضلك أنشئ حساباً جديداً أولاً.';
           break;
       }
       errorEl.textContent = message;
@@ -525,7 +528,7 @@
       return recaptchaVerifier;
     }
 
-    document.getElementById('phone-request-form').addEventListener('submit', function (e) {
+    document.getElementById('phone-request-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       errorEl.classList.add('hidden');
       const phone = document.getElementById('login-phone').value.trim();
@@ -537,14 +540,23 @@
 
       setButtonLoading('send-code-btn', true);
 
-      signInWithPhoneNumber(auth, phone, getRecaptcha())
-        .then((result) => {
-          confirmationResult = result;
-          document.getElementById('phone-request-form').classList.add('hidden');
-          document.getElementById('phone-code-form').classList.remove('hidden');
-        })
-        .catch(showError)
-        .finally(() => setButtonLoading('send-code-btn', false));
+      try {
+        // تحقق بسيط ورخيص: بيتأكد بس إن الرقم مسجل (من غير ما يكشف أي
+        // بيانات)، ومفيش SMS بتتبعت لو الرقم مش مسجل، فمفيش فلوس بتتصرف.
+        const indexSnap = await getDoc(doc(db, 'phoneIndex', phone));
+        if (!indexSnap.exists()) {
+          showError({ code: 'auth/phone-not-registered' });
+          return;
+        }
+
+        confirmationResult = await signInWithPhoneNumber(auth, phone, getRecaptcha());
+        document.getElementById('phone-request-form').classList.add('hidden');
+        document.getElementById('phone-code-form').classList.remove('hidden');
+      } catch (error) {
+        showError(error);
+      } finally {
+        setButtonLoading('send-code-btn', false);
+      }
     });
 
     document.getElementById('phone-code-form').addEventListener('submit', function (e) {

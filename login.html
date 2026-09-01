@@ -438,6 +438,9 @@
         case 'auth/code-expired':
           message = 'This code has expired. Please request a new one.';
           break;
+        case 'auth/phone-not-registered':
+          message = "This phone number isn't registered yet. Please create an account first.";
+          break;
       }
       errorEl.textContent = message;
       errorEl.classList.remove('hidden');
@@ -527,7 +530,7 @@
       return recaptchaVerifier;
     }
 
-    document.getElementById('phone-request-form').addEventListener('submit', function (e) {
+    document.getElementById('phone-request-form').addEventListener('submit', async function (e) {
       e.preventDefault();
       errorEl.classList.add('hidden');
       const phone = document.getElementById('login-phone').value.trim();
@@ -539,14 +542,24 @@
 
       setButtonLoading('send-code-btn', true);
 
-      signInWithPhoneNumber(auth, phone, getRecaptcha())
-        .then((result) => {
-          confirmationResult = result;
-          document.getElementById('phone-request-form').classList.add('hidden');
-          document.getElementById('phone-code-form').classList.remove('hidden');
-        })
-        .catch(showError)
-        .finally(() => setButtonLoading('send-code-btn', false));
+      try {
+        // Cheap existence check first — only confirms the number is
+        // registered (no user data exposed), and costs nothing since no
+        // SMS is sent if it isn't.
+        const indexSnap = await getDoc(doc(db, 'phoneIndex', phone));
+        if (!indexSnap.exists()) {
+          showError({ code: 'auth/phone-not-registered' });
+          return;
+        }
+
+        confirmationResult = await signInWithPhoneNumber(auth, phone, getRecaptcha());
+        document.getElementById('phone-request-form').classList.add('hidden');
+        document.getElementById('phone-code-form').classList.remove('hidden');
+      } catch (error) {
+        showError(error);
+      } finally {
+        setButtonLoading('send-code-btn', false);
+      }
     });
 
     document.getElementById('phone-code-form').addEventListener('submit', function (e) {
