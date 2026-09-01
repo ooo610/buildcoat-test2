@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BuildCoat - Redirecring...</title>
+</head>
+<body>
+  <div style="text-align: center; margin-top: 20vh; font-family: sans-serif;">
+    <h2>You are being redirected to reset password page...</h2>
+    <p>Please wait a few seconds.</p>
+  </div>
+
+  <script>
+    (function () {
+      const STORAGE_KEY = 'buildcoat_lang'; // نفس المفتاح المستخدم في lang.js
+
+      // 1) استخراج كل الباراميترات اللي بعتها فايربيز (oobCode, mode, apiKey...)
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryString = urlParams.toString();
+
+      // 2) تحديد اللغة: أول حاجة نتأكد من اللغة اللي اليوزر اختارها فعلياً
+      //    وقت ما كان بيتصفح الموقع (مخزنة في localStorage)، ولو مفيش،
+      //    نرجع للغة المتصفح كـ fallback.
+      const savedLang = localStorage.getItem(STORAGE_KEY);
+      let isArabic;
+
+      if (savedLang) {
+        isArabic = savedLang === 'ar';
+      } else {
+        const browserLang = navigator.language || navigator.userLanguage || '';
+        isArabic = browserLang.toLowerCase().startsWith('ar');
+      }
+
+      // 3) تحديد صفحة الوجهة بناءً على اللغة
+      const targetPage = isArabic ? './reset-password-ar.html' : './reset-password.html';
+
+      // 4) إعادة التوجيه الفوري مع الحفاظ على نفس الـ Parameters (oobCode و mode)
+      const finalRedirectUrl = queryString ? `${targetPage}?${queryString}` : targetPage;
+
+      window.location.replace(finalRedirectUrl);
+    })();
+  </script>
+</body>
+</html>
