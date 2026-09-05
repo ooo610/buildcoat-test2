@@ -337,6 +337,7 @@
                 fullName: pendingProfile.fullName,
                 phoneNumber: finalUser.phoneNumber,
                 email: finalUser.email || null,
+                role: 'customer',
                 profileComplete: true,
                 updatedAt: serverTimestamp()
               }, { merge: true }),
@@ -382,6 +383,7 @@
                 fullName: pendingSignup.displayName,
                 phoneNumber: finalUser.phoneNumber,
                 email: finalUser.email || null,
+                role: 'customer',
                 profileComplete: true,
                 createdAt: serverTimestamp()
               }, { merge: true }),
