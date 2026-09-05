@@ -52,7 +52,7 @@
     const menu = document.createElement('div');
     menu.className = 'hidden absolute left-0 mt-3 w-48 overflow-hidden rounded-xl bg-white shadow-xl border border-gray-100 z-50 text-right';
     menu.innerHTML = `
-      <a href="./settings-ar.html"
+      <a href="./account-setting.html"
          class="block px-4 py-3 text-sm font-semibold text-bc-charcoal hover:bg-gray-50 transition-colors">
         Settings
       </a>
