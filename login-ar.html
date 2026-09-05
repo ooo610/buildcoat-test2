@@ -397,6 +397,7 @@
       signInWithEmailAndPassword,
       signInWithPopup,
       GoogleAuthProvider,
+      FacebookAuthProvider,
       setPersistence,
       browserLocalPersistence,
       browserSessionPersistence,
@@ -409,6 +410,7 @@
     } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
     const googleProvider = new GoogleAuthProvider();
+    const facebookProvider = new FacebookAuthProvider();
     const errorEl = document.getElementById('login-error');
 
     function showError(error) {
@@ -511,10 +513,17 @@
         });
     });
 
-    // Facebook placeholder
+    // Facebook login
     document.getElementById('facebook-login-btn').addEventListener('click', function () {
-      errorEl.textContent = 'تسجيل الدخول بفيسبوك هيتفعّل قريباً.';
-      errorEl.classList.remove('hidden');
+      errorEl.classList.add('hidden');
+      setButtonLoading('facebook-login-btn', true);
+      applyRememberMePreference('remember-me')
+        .then(() => signInWithPopup(auth, facebookProvider))
+        .then((result) => goToDashboard(result.user))
+        .catch((error) => {
+          setButtonLoading('facebook-login-btn', false);
+          showError(error);
+        });
     });
 
     // ── Phone login ──
