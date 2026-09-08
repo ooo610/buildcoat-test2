@@ -430,14 +430,13 @@
 <section class="reveal-section px-4 sm:px-6 pb-20 md:pb-28">
   <h2 class="font-jakarta text-2xl sm:text-3xl font-extrabold text-bc-green text-center mb-8">Meet our founders</h2>
 
-  <!-- تحويل التقسيم لـ lg بدل md ليكون الآيباد متناسق جداً -->
   <div class="max-w-5xl mx-auto bg-bc-charcoal rounded-3xl overflow-hidden shadow-2xl grid lg:grid-cols-2 items-center">
     
     <!-- Tabs -->
     <div class="p-6 sm:p-8 lg:p-12 flex flex-col justify-center gap-5 lg:gap-8">
       
       <button type="button" class="founder-tab flex items-center gap-3 lg:gap-4 text-left" data-target="founder-1" data-active="true">
-        <svg class="w-4 h-4 text-[#a3b18a] fill-current inline-block mr-2" viewBox="0 0 24 24"> <path d="M8 5v14l11-7z"/> </svg>
+        <svg class="w-4 h-4 text-[#a3b18a] fill-current inline-block shrink-0" viewBox="0 0 24 24"> <path d="M8 5v14l11-7z"/> </svg>
         <span>
           <span class="tab-title block font-jakarta font-bold text-base sm:text-xl lg:text-2xl transition-colors duration-200">Saif Edin Essam El-Hawary</span>
           <span class="tab-role block text-xs sm:text-base lg:text-lg mt-0.5 transition-colors duration-200">Founder</span>
@@ -445,7 +444,7 @@
       </button>
 
       <button type="button" class="founder-tab flex items-center gap-3 lg:gap-4 text-left" data-target="founder-2" data-active="false">
-        <svg class="w-4 h-4 text-[#a3b18a] fill-current inline-block mr-2" viewBox="0 0 24 24"> <path d="M8 5v14l11-7z"/> </svg>
+        <svg class="w-4 h-4 text-[#a3b18a] fill-current inline-block shrink-0" viewBox="0 0 24 24"> <path d="M8 5v14l11-7z"/> </svg>
         <span>
           <span class="tab-title block font-jakarta font-bold text-base sm:text-xl lg:text-2xl transition-colors duration-200">Abdulrahman Essam El-Hawary</span>
           <span class="tab-role block text-xs sm:text-base lg:text-lg mt-0.5 transition-colors duration-200">CO-Founder</span>
@@ -454,44 +453,54 @@
 
     </div>
 
-    <!-- Panels -->
-    <div class="relative min-h-[460px] sm:min-h-[480px] md:min-h-[520px] lg:min-h-[540px] flex items-center justify-center">
+    <!-- Panels Container -->
+    <div class="relative p-4 sm:p-6 lg:p-8 flex items-center justify-center">
       
-      <!-- Panel 1 -->
-      <div id="founder-1" class="founder-panel absolute inset-0">
-        <img src="./assets/Untitled-2.png" alt="Saif Essam" class="absolute inset-0 w-full h-full object-contain" />
+      <!-- Panel 1: Saif -->
+      <div id="founder-1" class="founder-panel w-full relative rounded-2xl overflow-hidden min-h-[460px] sm:min-h-[500px] lg:min-h-[520px] flex flex-col justify-end p-5 sm:p-6 lg:p-8 border border-white/10">
         
-        <!-- ضبط أبعاد النص الخاصة بالآيباد والتابلت (md) والدائري الشفاف -->
-        <div class="absolute bottom-16 sm:bottom-14 md:bottom-16 lg:bottom-16 left-1/2 -translate-x-1/2 w-[68%] sm:w-[72%] md:w-[65%] lg:w-[82%] max-w-[340px] text-left">
-          <p class="font-jakarta font-bold text-white text-[11px] sm:text-xs lg:text-sm leading-tight">Saif Essam</p>
-          <p class="font-jakarta font-semibold text-[9px] sm:text-[10px] lg:text-xs text-[#8CA46B] mt-0.5">Founder &amp; CEO – BuildCoat</p>
+        <!-- الصورة كخلفية مشدودة تماماً للـ Panel بـ object-cover -->
+        <img src="./assets/Untitled-2.png" alt="Saif Essam" class="absolute inset-0 w-full h-full object-cover object-center z-0" />
+        
+        <!-- Gradient أسود متدرج من الأسفل عشان يضمن قراءة النص 100% -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent z-10 pointer-events-none"></div>
+
+        <!-- النص الداخلي: مرن وبحجم مناسب -->
+        <div class="relative z-20 text-left space-y-1.5 sm:space-y-2">
+          <p class="font-jakarta font-bold text-white text-base sm:text-lg lg:text-xl leading-tight">Saif Essam</p>
+          <p class="font-jakarta font-semibold text-xs sm:text-sm text-[#8CA46B]">Founder &amp; CEO – BuildCoat</p>
           
-          <p class="text-white/90 text-[9px] sm:text-[10px] lg:text-xs leading-snug lg:leading-relaxed mt-1 sm:mt-1.5">
+          <p class="text-white/90 text-xs sm:text-sm leading-relaxed pt-1">
             Saif Essam is a chemist and entrepreneur. Since his first year at the Faculty of Science, Capital University, he has focused on developing smarter, more sustainable alternatives to traditional wall finishes.
           </p>
           
-          <p class="text-white/90 text-[9px] sm:text-[10px] lg:text-xs leading-snug lg:leading-relaxed mt-1">
+          <p class="text-white/90 text-xs sm:text-sm leading-relaxed">
             Through BuildCoat, he blends science, design, and strategy to deliver high-performance materials tailored for emerging markets. His vision goes beyond product innovation — he's also developing a vertically integrated model to control quality, reduce cost, and scale impact across the construction industry.
           </p>
         </div>
+
       </div>
 
-      <!-- Panel 2 -->
-      <div id="founder-2" class="founder-panel absolute inset-0 hidden">
-        <img src="./assets/Untitled-4.png" alt="Abdulrahman Essam" class="absolute inset-0 w-full h-full object-contain" />
+      <!-- Panel 2: Abdulrahman -->
+      <div id="founder-2" class="founder-panel w-full relative rounded-2xl overflow-hidden min-h-[460px] sm:min-h-[500px] lg:min-h-[520px] hidden flex flex-col justify-end p-5 sm:p-6 lg:p-8 border border-white/10">
         
-        <div class="absolute bottom-16 sm:bottom-14 md:bottom-16 lg:bottom-16 left-1/2 -translate-x-1/2 w-[68%] sm:w-[72%] md:w-[65%] lg:w-[82%] max-w-[340px] text-left">
-          <p class="font-jakarta font-bold text-white text-[11px] sm:text-xs lg:text-sm leading-tight">Abdulrahman Essam</p>
-          <p class="font-jakarta font-semibold text-[9px] sm:text-[10px] lg:text-xs text-[#8CA46B] mt-0.5">Co-Founder, Digital Marketing &amp; Sales Specialist – BuildCoat</p>
+        <img src="./assets/Untitled-4.png" alt="Abdulrahman Essam" class="absolute inset-0 w-full h-full object-cover object-center z-0" />
+        
+        <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent z-10 pointer-events-none"></div>
+
+        <div class="relative z-20 text-left space-y-1.5 sm:space-y-2">
+          <p class="font-jakarta font-bold text-white text-base sm:text-lg lg:text-xl leading-tight">Abdulrahman Essam</p>
+          <p class="font-jakarta font-semibold text-xs sm:text-sm text-[#8CA46B]">Co-Founder, Digital Marketing &amp; Sales Specialist – BuildCoat</p>
           
-          <p class="text-white/90 text-[9px] sm:text-[10px] lg:text-xs leading-snug lg:leading-relaxed mt-1 sm:mt-1.5">
+          <p class="text-white/90 text-xs sm:text-sm leading-relaxed pt-1">
             Abdulrahman Essam holds a Bachelor's degree in Digital Marketing from Thebes Academy. With a strong background in digital strategy and brand communication, he plays a key role in shaping BuildCoat's online presence and driving its market outreach.
           </p>
           
-          <p class="text-white/90 text-[9px] sm:text-[10px] lg:text-xs leading-snug lg:leading-relaxed mt-1">
+          <p class="text-white/90 text-xs sm:text-sm leading-relaxed">
             His work focuses on connecting the brand with its audience through creative storytelling, data-driven campaigns, and performance marketing that supports the company's growth across both B2B and B2C sectors.
           </p>
         </div>
+
       </div>
 
     </div>
