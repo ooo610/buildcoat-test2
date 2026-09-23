@@ -1711,112 +1711,195 @@
 
 
     // =========================================================
-    // 5. Update Phone
-    // =========================================================
+// 5. Update Phone
+// =========================================================
 
-    let confirmationResult;
+let confirmationResult;
 
-    let recaptchaVerifier;
-
-
-    function getRecaptcha() {
-
-      if (!recaptchaVerifier) {
-
-        recaptchaVerifier =
-          new RecaptchaVerifier(
-            auth,
-            'recaptcha-container',
-            {
-              size: 'normal'
-            }
-          );
-      }
-
-      return recaptchaVerifier;
-    }
+let recaptchaVerifier;
 
 
-    document.getElementById('form-phone')
-      .addEventListener('submit', async (e) => {
+function getRecaptcha() {
 
-        e.preventDefault();
+  if (!recaptchaVerifier) {
+
+    recaptchaVerifier =
+      new RecaptchaVerifier(
+        auth,
+        'recaptcha-container',
+        {
+          size: 'normal'
+        }
+      );
+  }
+
+  return recaptchaVerifier;
+}
 
 
-        const phone =
+document.getElementById('form-phone')
+  .addEventListener('submit', async (e) => {
+
+    e.preventDefault();
+
+
+    const phone =
+      document.getElementById(
+        'inp-new-phone'
+      ).value.trim();
+
+
+    setBtnLoading(
+      'btn-send-sms',
+      true
+    );
+
+
+    const sendSmsLogic =
+      async () => {
+
+        try {
+
+          confirmationResult =
+            await signInWithPhoneNumber(
+              auth,
+              phone,
+              getRecaptcha()
+            );
+
+
           document.getElementById(
-            'inp-new-phone'
-          ).value.trim();
+            'phone-request-step'
+          ).classList.add('hidden');
 
 
-        setBtnLoading(
-          'btn-send-sms',
-          true
+          document.getElementById(
+            'phone-verify-step'
+          ).classList.remove('hidden');
+
+
+        } catch (err) {
+
+          if (
+            err.code ===
+            'auth/requires-recent-login'
+          ) {
+
+            promptReauth(
+              sendSmsLogic
+            );
+
+          } else {
+
+            showMsg(
+              err.message,
+              true
+            );
+          }
+
+        } finally {
+
+          setBtnLoading(
+            'btn-send-sms',
+            false
+          );
+        }
+
+      };
+
+
+    sendSmsLogic();
+
+  });
+
+
+// Cancel phone verification
+document.getElementById(
+  'btn-cancel-phone'
+).addEventListener('click', () => {
+
+  document.getElementById(
+    'phone-verify-step'
+  ).classList.add('hidden');
+
+
+  document.getElementById(
+    'phone-request-step'
+  ).classList.remove('hidden');
+
+});
+
+
+// Verify phone
+document.getElementById(
+  'form-verify-phone'
+).addEventListener(
+  'submit',
+  async (e) => {
+
+    e.preventDefault();
+
+
+    const code =
+      document.getElementById(
+        'inp-sms-code'
+      ).value.trim();
+
+
+    setBtnLoading(
+      'btn-verify-sms',
+      true
+    );
+
+
+    try {
+
+      const cred =
+        PhoneAuthProvider.credential(
+          confirmationResult.verificationId,
+          code
         );
 
 
-        const sendSmsLogic =
-          async () => {
-
-            try {
-
-              confirmationResult =
-                await signInWithPhoneNumber(
-                  auth,
-                  phone,
-                  getRecaptcha()
-                );
+      await updatePhoneNumber(
+        currentUser,
+        cred
+      );
 
 
-              document.getElementById(
-                'phone-request-step'
-              ).classList.add('hidden');
+      // Sync the new phone number through the secure Vercel backend.
+      const token =
+        await currentUser.getIdToken(true);
 
 
-              document.getElementById(
-                'phone-verify-step'
-              ).classList.remove('hidden');
-
-
-            } catch (err) {
-
-              if (
-                err.code ===
-                'auth/requires-recent-login'
-              ) {
-
-                promptReauth(
-                  sendSmsLogic
-                );
-
-              } else {
-
-                showMsg(
-                  err.message,
-                  true
-                );
-              }
-
-            } finally {
-
-              setBtnLoading(
-                'btn-send-sms',
-                false
-              );
+      const response =
+        await fetch(
+          'https://buildcoat-test2.vercel.app/api/sync-phone',
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`
             }
-
-          };
-
-
-        sendSmsLogic();
-
-      });
+          }
+        );
 
 
-    // Cancel phone verification
-    document.getElementById(
-      'btn-cancel-phone'
-    ).addEventListener('click', () => {
+      const result =
+        await response.json();
+
+
+      if (!response.ok) {
+        throw new Error(
+          result.error ||
+          'Phone synchronization failed'
+        );
+      }
+
+
+      showMsg(
+        'تم تحديث رقم الموبايل بنجاح!'
+      );
+
 
       document.getElementById(
         'phone-verify-step'
@@ -1827,104 +1910,26 @@
         'phone-request-step'
       ).classList.remove('hidden');
 
-    });
 
+    } catch (err) {
 
-    // Verify phone
-    document.getElementById(
-      'form-verify-phone'
-    ).addEventListener(
-      'submit',
-      async (e) => {
+      console.error(err);
 
-        e.preventDefault();
+      showMsg(
+        'كود التأكيد غير صحيح أو فشل التحديث.',
+        true
+      );
 
+    } finally {
 
-        const code =
-          document.getElementById(
-            'inp-sms-code'
-          ).value.trim();
+      setBtnLoading(
+        'btn-verify-sms',
+        false
+      );
+    }
 
-
-        setBtnLoading(
-          'btn-verify-sms',
-          true
-        );
-
-
-        try {
-
-          const cred =
-            PhoneAuthProvider.credential(
-              confirmationResult.verificationId,
-              code
-            );
-
-
-          await updatePhoneNumber(
-            currentUser,
-            cred
-          );
-
-
-          const phone =
-            document.getElementById(
-              'inp-new-phone'
-            ).value.trim();
-
-
-          await touchUpdatedAt({
-            phoneNumber: phone
-          });
-
-
-          await setDoc(
-            doc(
-              db,
-              'phoneIndex',
-              phone
-            ),
-            {
-              exists: true
-            }
-          );
-
-
-          showMsg(
-            'تم تحديث رقم الموبايل بنجاح!'
-          );
-
-
-          document.getElementById(
-            'phone-verify-step'
-          ).classList.add('hidden');
-
-
-          document.getElementById(
-            'phone-request-step'
-          ).classList.remove('hidden');
-
-
-        } catch (err) {
-
-          console.error(err);
-
-          showMsg(
-            'كود التأكيد غير صحيح أو فشل التحديث.',
-            true
-          );
-
-        } finally {
-
-          setBtnLoading(
-            'btn-verify-sms',
-            false
-          );
-        }
-
-      }
-    );
-
+  }
+);
   </script>
 
 </body>
