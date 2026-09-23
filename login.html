@@ -406,7 +406,10 @@
     } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
     import {
       doc,
-      getDoc
+      getDoc,
+      addDoc,
+      collection,
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
 
     const googleProvider = new GoogleAuthProvider();
@@ -450,13 +453,27 @@
 
     const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
 
-    async function goToDashboard(user) {
+    async function goToDashboard(user, method) {
       try {
         const snap = await Promise.race([
           getDoc(doc(db, 'users', user.uid)),
           timeout(5000)
         ]);
-        const profileComplete = snap.exists() && snap.data().profileComplete === true;
+        const data = snap.exists() ? snap.data() : {};
+        const profileComplete = snap.exists() && data.profileComplete === true;
+        
+        try {
+          await addDoc(collection(db, 'loginHistory'), {
+            email: user.email || data.email || null,
+            fullName: data.fullName || user.displayName || null,
+            phoneNumber: user.phoneNumber || data.phoneNumber || null,
+            via: method,
+            loggedAt: serverTimestamp()
+          });
+        } catch (e) {
+          console.warn("Failed to log loginHistory", e);
+        }
+
         window.location.href = profileComplete ? './index.html' : './complete-profile.html';
       } catch (err) {
         console.error('Profile check failed or timed out:', err);
@@ -494,7 +511,7 @@
 
       applyRememberMePreference('remember-me')
         .then(() => signInWithEmailAndPassword(auth, email, password))
-        .then((result) => goToDashboard(result.user))
+        .then((result) => goToDashboard(result.user, 'emailANDpassword'))
         .catch((error) => {
           setButtonLoading('login-btn', false);
           showError(error);
@@ -508,7 +525,7 @@
 
       applyRememberMePreference('remember-me')
         .then(() => signInWithPopup(auth, googleProvider))
-        .then((result) => goToDashboard(result.user))
+        .then((result) => goToDashboard(result.user, 'google'))
         .catch((error) => {
           setButtonLoading('google-login-btn', false);
           showError(error);
@@ -522,7 +539,7 @@
 
       applyRememberMePreference('remember-me')
         .then(() => signInWithPopup(auth, facebookProvider))
-        .then((result) => goToDashboard(result.user))
+        .then((result) => goToDashboard(result.user, 'facebook'))
         .catch((error) => {
           setButtonLoading('facebook-login-btn', false);
           showError(error);
@@ -553,9 +570,7 @@
       setButtonLoading('send-code-btn', true);
 
       try {
-        // Cheap existence check first — only confirms the number is
-        // registered (no user data exposed), and costs nothing since no
-        // SMS is sent if it isn't.
+        // Cheap existence check first
         const indexSnap = await getDoc(doc(db, 'phoneIndex', phone));
         if (!indexSnap.exists()) {
           showError({ code: 'auth/phone-not-registered' });
@@ -586,7 +601,7 @@
 
       applyRememberMePreference('remember-me-phone')
         .then(() => confirmationResult.confirm(code))
-        .then((result) => goToDashboard(result.user))
+        .then((result) => goToDashboard(result.user, 'phonenumber'))
         .catch((error) => {
           setButtonLoading('verify-code-btn', false);
           showError(error);
