@@ -370,6 +370,11 @@
 
         <!-- 3. Password -->
         <div id="tab-password" class="tab-pane hidden max-w-md">
+          <div id="password-social-message" class="hidden text-center py-10">
+            <p class="text-gray-600">
+              هذه الميزة غير متاحة عند تسجيل الدخول باستخدام فيسبوك أو جوجل
+            </p>
+          </div>
 
           <form id="form-password" class="space-y-5">
 
@@ -445,7 +450,11 @@
 
         <!-- 4. Email -->
         <div id="tab-email" class="tab-pane hidden max-w-md">
-
+          <div id="email-social-message" class="hidden text-center py-10">
+            <p class="text-gray-600">
+              هذه الميزة غير متاحة عند تسجيل الدخول باستخدام فيسبوك أو جوجل
+            </p>
+          </div>
           <form id="form-email" class="space-y-5">
 
             <div>
@@ -968,6 +977,13 @@
       );
     }
 
+    //GET THE PROVIDER
+    function hasPasswordProvider(user) {
+  return user.providerData.some(
+    provider => provider.providerId === 'password'
+  );
+}
+
 
     // =========================================================
     // Tab Switching
@@ -1030,6 +1046,27 @@
 
         currentUser = user;
 
+        const socialLogin = !hasPasswordProvider(user);
+
+        document.getElementById('password-social-message').classList.toggle(
+          'hidden',
+          !socialLogin
+        );
+
+        document.getElementById('email-social-message').classList.toggle(
+          'hidden',
+          !socialLogin
+        );
+
+        document.getElementById('form-password').classList.toggle(
+          'hidden',
+          socialLogin
+        );
+
+        document.getElementById('form-email').classList.toggle(
+          'hidden',
+          socialLogin
+        );
 
         const avatarImg =
           document.getElementById('avatar-img');

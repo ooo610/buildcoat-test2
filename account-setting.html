@@ -141,7 +141,7 @@
     <section class="w-full md:w-2/3 lg:w-3/4">
       <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-6 md:p-10 min-h-[400px]">
 
-        <h1 class="text-2xl sm:text-3xl font-brand font-black text-bc-charcoal mb-8 border-b pb-4">Editing Details</h1>
+        <h1 class="text-2xl sm:text-3xl font-brand font-black text-bc-charcoal mb-8 border-b pb-4">Settings Details</h1>
 
         <div id="global-msg" class="hidden px-4 py-3 rounded-lg mb-6 text-sm font-medium text-center"></div>
 
@@ -189,6 +189,12 @@
 
         <!-- 3. Password Form -->
         <div id="tab-password" class="tab-pane hidden max-w-md">
+          <div id="password-social-message" class="hidden text-center py-10">
+            <p class="text-gray-600">
+              This feature isn't available for logged in accounts via google or facebook
+            </p>
+          </div>
+
           <form id="form-password" class="space-y-5">
             <div>
               <label class="block text-sm font-semibold text-bc-charcoal mb-1">New Password</label>
@@ -230,6 +236,12 @@
 
         <!-- 4. Email Form -->
         <div id="tab-email" class="tab-pane hidden max-w-md">
+          <div id="email-social-message" class="hidden text-center py-10">
+            <p class="text-gray-600">
+              This feature isn't available for logged in accounts via google or facebook
+            </p>
+          </div>
+
           <form id="form-email" class="space-y-5">
             <div>
               <label class="block text-sm font-semibold text-bc-charcoal mb-1">Current Email</label>
@@ -415,6 +427,13 @@
       });
     }
 
+//GET THE PROVIDER
+    function hasPasswordProvider(user) {
+  return user.providerData.some(
+    provider => provider.providerId === 'password'
+  );
+}
+
     // --- Tab Switching ---
     document.querySelectorAll('.settings-tab').forEach(tab => {
       tab.addEventListener('click', () => {
@@ -434,7 +453,27 @@
     onAuthStateChanged(auth, async (user) => {
       if (user) {
         currentUser = user;
+        const socialLogin = !hasPasswordProvider(user);
 
+        document.getElementById('password-social-message').classList.toggle(
+          'hidden',
+          !socialLogin
+        );
+
+        document.getElementById('email-social-message').classList.toggle(
+          'hidden',
+          !socialLogin
+        );
+
+        document.getElementById('form-password').classList.toggle(
+          'hidden',
+          socialLogin
+        );
+
+        document.getElementById('form-email').classList.toggle(
+          'hidden',
+          socialLogin
+        );
         const avatarImg = document.getElementById('avatar-img');
         const avatarInitials = document.getElementById('avatar-initials');
         if (user.photoURL) {
