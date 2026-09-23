@@ -339,7 +339,7 @@
                 email: finalUser.email || null,
                 role: 'customer',
                 profileComplete: true,
-                updatedAt: serverTimestamp()
+                createdAt: serverTimestamp()
               }, { merge: true }),
               timeout(8000)
             ]);
