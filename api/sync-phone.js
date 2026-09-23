@@ -1,0 +1,45 @@
+import admin from 'firebase-admin';
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
+    })
+  });
+}
+
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({
+      error: 'Method not allowed'
+    });
+  }
+
+  try {
+    const authHeader = req.headers.authorization || '';
+
+    if (!authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({
+        error: 'Missing Authorization token'
+      });
+    }
+
+    const idToken = authHeader.slice(7);
+
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+    return res.status(200).json({
+      ok: true,
+      uid: decodedToken.uid
+    });
+
+  } catch (error) {
+    console.error(error);
+
+    return res.status(401).json({
+      error: 'Invalid or expired token'
+    });
+  }
+}
