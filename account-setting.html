@@ -720,7 +720,28 @@
         setBtnLoading('btn-verify-sms', false);
       }
     });
+// TEMP API TEST
+window.testPhoneSyncAPI = async () => {
+  try {
+    const token = await currentUser.getIdToken(true);
 
+    const response = await fetch(
+      'https://buildcoat-test2-jycof7vdq-build-coat.vercel.app/api/sync-phone',
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    const result = await response.json();
+
+    console.log('Vercel API response:', result);
+  } catch (error) {
+    console.error('Vercel API test failed:', error);
+  }
+};
   </script>
 </body>
 </html>
