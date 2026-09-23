@@ -11,13 +11,10 @@ if (!admin.apps.length) {
 }
 
 export default async function handler(req, res) {
-
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', 'https://ooo610.github.io');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
 
-  // Handle browser preflight request
   if (req.method === 'OPTIONS') {
     return res.status(204).end();
   }
@@ -40,17 +37,64 @@ export default async function handler(req, res) {
     const idToken = authHeader.slice(7);
 
     const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const uid = decodedToken.uid;
+
+    // Get the authenticated user's actual phone number
+    // directly from Firebase Authentication.
+    const userRecord = await admin.auth().getUser(uid);
+    const newPhone = userRecord.phoneNumber;
+
+    if (!newPhone) {
+      return res.status(400).json({
+        error: 'User does not have a phone number'
+      });
+    }
+
+    // Get the old phone number from Firestore.
+    const db = admin.firestore();
+    const userRef = db.collection('users').doc(uid);
+    const userSnap = await userRef.get();
+
+    const oldPhone = userSnap.exists
+      ? userSnap.data().phoneNumber
+      : null;
+
+    const batch = db.batch();
+
+    // Remove the old phone index if the number actually changed.
+    if (oldPhone && oldPhone !== newPhone) {
+      batch.delete(
+        db.collection('phoneIndex').doc(oldPhone)
+      );
+    }
+
+    // Create/update the new phone index.
+    batch.set(
+      db.collection('phoneIndex').doc(newPhone),
+      { exists: true }
+    );
+
+    // Update the user's Firestore document.
+    batch.set(
+      userRef,
+      {
+        phoneNumber: newPhone,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      },
+      { merge: true }
+    );
+
+    await batch.commit();
 
     return res.status(200).json({
-      ok: true,
-      uid: decodedToken.uid
+      ok: true
     });
 
   } catch (error) {
     console.error(error);
 
-    return res.status(401).json({
-      error: 'Invalid or expired token'
+    return res.status(500).json({
+      error: 'Phone synchronization failed'
     });
   }
 }
