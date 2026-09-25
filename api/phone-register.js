@@ -265,24 +265,26 @@ async function commitSignupFirestore(operation) {
   const userRef = db.collection('users').doc(operation.uid);
   const phoneIndexRef = db.collection('phoneIndex').doc(operation.phone);
 
-  const phoneIndexSnap = await phoneIndexRef.get();
+  await db.runTransaction(async (transaction) => {
+    const [userSnap, phoneIndexSnap] = await Promise.all([
+      transaction.get(userRef),
+      transaction.get(phoneIndexRef)
+    ]);
 
-  if (phoneIndexSnap.exists) {
-    const existingUid = phoneIndexSnap.data()?.uid || null;
+    if (phoneIndexSnap.exists) {
+      const existingUid = phoneIndexSnap.data()?.uid || null;
 
-    if (existingUid && existingUid !== operation.uid) {
-      const error = new Error('Phone index belongs to another user.');
-      error.code = 'PHONE_INDEX_CONFLICT';
-      error.status = 409;
-      throw error;
+      if (existingUid && existingUid !== operation.uid) {
+        const error = new Error(
+          'Phone index belongs to another user.'
+        );
+        error.code = 'PHONE_INDEX_CONFLICT';
+        error.status = 409;
+        throw error;
+      }
     }
-  }
 
-  const batch = db.batch();
-
-  batch.set(
-    userRef,
-    {
+    const userData = {
       firstName: operation.firstName,
       middleName: operation.middleName,
       lastName: operation.lastName,
@@ -290,77 +292,97 @@ async function commitSignupFirestore(operation) {
       email: operation.email,
       phoneNumber: operation.phone,
       role: 'customer',
-      profileComplete: true,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    },
-    { merge: true }
-  );
+      profileComplete: true
+    };
 
-  batch.set(
-    phoneIndexRef,
-    {
-      uid: operation.uid,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    },
-    { merge: true }
-  );
+    // createdAt is written ONLY when the users document
+    // does not already exist.
+    if (!userSnap.exists) {
+      userData.createdAt =
+        admin.firestore.FieldValue.serverTimestamp();
+    }
 
-  await batch.commit();
+    transaction.set(
+      userRef,
+      userData,
+      { merge: true }
+    );
+
+    transaction.set(
+      phoneIndexRef,
+      {
+        uid: operation.uid
+      },
+      { merge: true }
+    );
+  });
 }
 
 async function commitSocialFirestore(operation, uid, newPhone) {
   const userRef = db.collection('users').doc(uid);
   const newIndexRef = db.collection('phoneIndex').doc(newPhone);
+
   const oldIndexRef = operation.oldPhone
     ? db.collection('phoneIndex').doc(operation.oldPhone)
     : null;
 
-  const newIndexSnap = await newIndexRef.get();
+  await db.runTransaction(async (transaction) => {
+    const reads = [
+      transaction.get(userRef),
+      transaction.get(newIndexRef)
+    ];
 
-  if (newIndexSnap.exists) {
-    const indexedUid = newIndexSnap.data()?.uid || null;
-
-    if (indexedUid && indexedUid !== uid) {
-      const error = new Error('New phone index belongs to another user.');
-      error.code = 'PHONE_INDEX_CONFLICT';
-      error.status = 409;
-      throw error;
+    if (
+      oldIndexRef &&
+      operation.oldPhone !== newPhone
+    ) {
+      reads.push(transaction.get(oldIndexRef));
     }
-  }
 
-  let oldIndexSnap = null;
+    const results = await Promise.all(reads);
 
-  if (oldIndexRef && operation.oldPhone !== newPhone) {
-    oldIndexSnap = await oldIndexRef.get();
-  }
+    const userSnap = results[0];
+    const newIndexSnap = results[1];
+    const oldIndexSnap =
+      oldIndexRef &&
+      operation.oldPhone !== newPhone
+        ? results[2]
+        : null;
 
-  const batch = db.batch();
+    if (newIndexSnap.exists) {
+      const indexedUid =
+        newIndexSnap.data()?.uid || null;
 
-  if (oldIndexRef && operation.oldPhone !== newPhone) {
-    if (!oldIndexSnap?.exists) {
-      // Nothing to delete.
-    } else {
-      const oldOwnerUid = oldIndexSnap.data()?.uid || null;
-
-      if (!oldOwnerUid || oldOwnerUid === uid) {
-        batch.delete(oldIndexRef);
+      if (
+        indexedUid &&
+        indexedUid !== uid
+      ) {
+        const error = new Error(
+          'New phone index belongs to another user.'
+        );
+        error.code = 'PHONE_INDEX_CONFLICT';
+        error.status = 409;
+        throw error;
       }
     }
-  }
 
-  batch.set(
-    newIndexRef,
-    {
-      uid,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    },
-    { merge: true }
-  );
+    if (
+      oldIndexRef &&
+      operation.oldPhone !== newPhone &&
+      oldIndexSnap?.exists
+    ) {
+      const oldOwnerUid =
+        oldIndexSnap.data()?.uid || null;
 
-  batch.set(
-    userRef,
-    {
+      if (
+        !oldOwnerUid ||
+        oldOwnerUid === uid
+      ) {
+        transaction.delete(oldIndexRef);
+      }
+    }
+
+    const userData = {
       phoneNumber: newPhone,
       firstName: operation.firstName,
       middleName: operation.middleName,
@@ -368,14 +390,31 @@ async function commitSocialFirestore(operation, uid, newPhone) {
       fullName: operation.fullName,
       email: operation.email || null,
       role: 'customer',
-      profileComplete: true,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    },
-    { merge: true }
-  );
+      profileComplete: true
+    };
 
-  await batch.commit();
+    // Only the first creation gets createdAt.
+    if (!userSnap.exists) {
+      userData.createdAt =
+        admin.firestore.FieldValue.serverTimestamp();
+    }
+
+    transaction.set(
+      userRef,
+      userData,
+      { merge: true }
+    );
+
+    transaction.set(
+      newIndexRef,
+      {
+        uid
+      },
+      { merge: true }
+    );
+  });
 }
+
 
 async function retryFirestoreWrite(fn) {
   let lastError = null;
