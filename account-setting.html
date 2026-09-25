@@ -259,7 +259,25 @@
 
         <!-- 5. Phone Number Form -->
         <div id="tab-phone" class="tab-pane hidden max-w-md">
+          <noscript id="phone-js-required-message" class="block bg-red-50 border border-red-100 text-red-600 rounded-xl p-4 text-sm font-semibold mb-6">
+JavaScript must be enabled to securely change your phone number.
+          </noscript>
+
           <p class="text-sm text-bc-gray mb-6">Updating your phone number requires verifying the new number via SMS.</p>
+          <noscript>
+            <style>
+              #form-phone input,
+              #form-phone button,
+              #form-verify-phone input,
+              #form-verify-phone button {
+                display: none !important;
+              }
+            </style>
+            <div class="px-4 py-3 rounded-lg bg-red-50 text-red-600 border border-red-100 text-sm font-medium text-center mb-6">
+              JavaScript must be enabled to change your phone number safely. The change cannot be completed without server synchronization.
+            </div>
+          </noscript>
+
           <div id="phone-request-step">
             <form id="form-phone" class="space-y-5">
               <div>
@@ -389,8 +407,8 @@
   <!-- Settings Logic -->
   <script type="module">
     import { auth, db } from './firebase-config.js';
-    import { onAuthStateChanged, updateProfile, updatePassword, updateEmail, EmailAuthProvider, reauthenticateWithCredential, PhoneAuthProvider, signInWithPhoneNumber, updatePhoneNumber } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
-    import { doc, getDoc, updateDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
+    import { onAuthStateChanged, updateProfile, updatePassword, updateEmail, EmailAuthProvider, reauthenticateWithCredential } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
+    import { doc, getDoc, updateDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js";
     import { RecaptchaVerifier } from "https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js";
 
     const globalMsg = document.getElementById('global-msg');
@@ -697,89 +715,197 @@
       updateEmailLogic();
     });
 
-    // --- 5. Update Phone (SMS) ---
-let confirmationResult;
-let recaptchaVerifier;
+    // --- 5. Update Phone (Server-Owned SMS Verification) ---
+    let phoneSessionInfo = null;
+    let recaptchaVerifier;
 
-function getRecaptcha() {
-  if (!recaptchaVerifier) {
-    recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'normal' });
-  }
-  return recaptchaVerifier;
-}
+    const PHONE_CHANGE_API =
+      'https://buildcoat-test2.vercel.app/api/phone-change';
 
-document.getElementById('form-phone').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const phone = document.getElementById('inp-new-phone').value.trim();
-  setBtnLoading('btn-send-sms', true);
-
-  const sendSmsLogic = async () => {
-    try {
-      confirmationResult = await signInWithPhoneNumber(auth, phone, getRecaptcha());
-      document.getElementById('phone-request-step').classList.add('hidden');
-      document.getElementById('phone-verify-step').classList.remove('hidden');
-    } catch (err) {
-      if (err.code === 'auth/requires-recent-login') {
-        promptReauth(sendSmsLogic);
-      } else {
-        showMsg(err.message, true);
+    function getRecaptcha() {
+      if (!recaptchaVerifier) {
+        recaptchaVerifier = new RecaptchaVerifier(
+          auth,
+          'recaptcha-container',
+          { size: 'normal' }
+        );
       }
-    } finally {
-      setBtnLoading('btn-send-sms', false);
+      return recaptchaVerifier;
     }
-  };
 
-  sendSmsLogic();
-});
+    async function callPhoneChangeAPI(action, payload = {}) {
+      if (!currentUser) {
+        const error = new Error('No authenticated user.');
+        error.code = 'auth/no-current-user';
+        throw error;
+      }
 
-document.getElementById('btn-cancel-phone').addEventListener('click', () => {
-  document.getElementById('phone-verify-step').classList.add('hidden');
-  document.getElementById('phone-request-step').classList.remove('hidden');
-});
+      const token = await currentUser.getIdToken(true);
 
-document.getElementById('form-verify-phone').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const code = document.getElementById('inp-sms-code').value.trim();
-  setBtnLoading('btn-verify-sms', true);
+      let response;
+      try {
+        response = await fetch(PHONE_CHANGE_API, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            action,
+            locale: 'en',
+            ...payload
+          })
+        });
+      } catch (error) {
+        const networkError = new Error(
+          'Could not contact the secure phone-change server.'
+        );
+        networkError.code = 'phone-change-network-error';
+        networkError.cause = error;
+        throw networkError;
+      }
 
-  try {
-    const cred = PhoneAuthProvider.credential(
-      confirmationResult.verificationId,
-      code
-    );
+      let result = {};
+      try {
+        result = await response.json();
+      } catch {
+        // Keep generic error below.
+      }
 
-    await updatePhoneNumber(currentUser, cred);
+      if (!response.ok || !result.ok) {
+        const serverError = new Error(
+          result.error || 'Phone change failed.'
+        );
+        serverError.code = result.code || 'PHONE_CHANGE_FAILED';
+        throw serverError;
+      }
 
-    // Sync the new phone number through the secure Vercel backend.
-    const token = await currentUser.getIdToken(true);
+      return result;
+    }
 
-    const response = await fetch(
-      'https://buildcoat-test2.vercel.app/api/sync-phone',
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`
+    document.getElementById('form-phone').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const phone = document.getElementById('inp-new-phone').value.trim();
+
+      if (!/^\+[1-9]\d{7,14}$/.test(phone)) {
+        showMsg(
+          'Please enter a valid phone number in international format, such as +201012345678.',
+          true
+        );
+        return;
+      }
+
+      setBtnLoading('btn-send-sms', true);
+
+      const sendSmsLogic = async () => {
+        try {
+          // The browser only proves it is a real app/user session.
+          // Firebase Auth is NOT changed here.
+          const recaptchaToken = await getRecaptcha().verify();
+
+          const result = await callPhoneChangeAPI('start', {
+            phone,
+            recaptchaToken
+          });
+
+          phoneSessionInfo = result.sessionInfo;
+
+          document.getElementById('phone-request-step').classList.add('hidden');
+          document.getElementById('phone-verify-step').classList.remove('hidden');
+        } catch (err) {
+          if (err.code === 'RECENT_LOGIN_REQUIRED') {
+            promptReauth(sendSmsLogic);
+          } else {
+            console.error('Phone change start failed:', err);
+            showMsg(
+              'Could not start phone verification. Please try again.',
+              true
+            );
+          }
+        } finally {
+          setBtnLoading('btn-send-sms', false);
         }
+      };
+
+      sendSmsLogic();
+    });
+
+    document.getElementById('btn-cancel-phone').addEventListener('click', () => {
+      phoneSessionInfo = null;
+      document.getElementById('phone-verify-step').classList.add('hidden');
+      document.getElementById('phone-request-step').classList.remove('hidden');
+      document.getElementById('inp-sms-code').value = '';
+    });
+
+    document.getElementById('form-verify-phone').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const code = document.getElementById('inp-sms-code').value.trim();
+
+      if (!phoneSessionInfo) {
+        showMsg('The verification session is no longer available. Start again.', true);
+        return;
       }
-    );
 
-    const result = await response.json();
+      if (!/^\d{6}$/.test(code)) {
+        showMsg('Please enter the 6-digit verification code.', true);
+        return;
+      }
 
-    if (!response.ok) {
-      throw new Error(result.error || 'Phone synchronization failed');
-    }
+      setBtnLoading('btn-verify-sms', true);
 
-    showMsg('Phone number updated successfully!');
-    document.getElementById('phone-verify-step').classList.add('hidden');
-    document.getElementById('phone-request-step').classList.remove('hidden');
+      const confirmPhoneLogic = async () => {
+        try {
+          await callPhoneChangeAPI('confirm', {
+            sessionInfo: phoneSessionInfo,
+            code
+          });
 
-  } catch (err) {
-    console.error(err);
-    showMsg('Invalid verification code or update failed.', true);
-  } finally {
-    setBtnLoading('btn-verify-sms', false);
-  }
-});
+          // Refresh the client-side Auth object after the server changed Auth.
+          await currentUser.reload();
+          await currentUser.getIdToken(true);
+
+          showMsg('Phone number updated successfully!');
+
+          phoneSessionInfo = null;
+          document.getElementById('phone-verify-step').classList.add('hidden');
+          document.getElementById('phone-request-step').classList.remove('hidden');
+          document.getElementById('inp-sms-code').value = '';
+          document.getElementById('inp-new-phone').value = '';
+        } catch (err) {
+          console.error('Phone change confirmation failed:', err);
+
+          if (err.code === 'RECENT_LOGIN_REQUIRED') {
+            promptReauth(confirmPhoneLogic);
+            return;
+          }
+
+          if (err.code === 'INVALID_OR_EXPIRED_CODE') {
+            showMsg('The verification code is invalid or expired.', true);
+          } else if (err.code === 'PHONE_CHANGE_UNCERTAIN') {
+            showMsg(
+              'The phone number was verified, but we could not safely complete the account update. Please contact support before trying again.',
+              true
+            );
+          } else if (err.code === 'PHONE_CHANGE_REJECTED') {
+            showMsg(
+              'The phone change could not be completed. Your previous number was restored.',
+              true
+            );
+          } else {
+            showMsg(
+              'The phone number could not be updated. Please try again.',
+              true
+            );
+          }
+        } finally {
+          setBtnLoading('btn-verify-sms', false);
+        }
+      };
+
+      confirmPhoneLogic();
+    });
 
   </script>
 </body>
