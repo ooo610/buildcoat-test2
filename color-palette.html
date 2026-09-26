@@ -43,6 +43,14 @@
 
   <!-- Page-level styles (animations, custom utilities) -->
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Keep palette sizing local so shared site styles cannot flatten the swatches. */
+    #palette-grid .palette-swatch {
+      aspect-ratio: 0.89 / 1;
+      width: 100%;
+      flex: none;
+    }
+  </style>
 </head>
 
 <body class="min-h-screen bg-white text-bc-charcoal antialiased">
