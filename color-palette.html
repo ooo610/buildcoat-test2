@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -296,6 +296,19 @@
     let modalTrigger = null;
     let resolveInitialAuth;
     const initialAuth = new Promise(resolve => { resolveInitialAuth = resolve; });
+    function getValidSelectedProduct() {
+      try {
+        const stored = sessionStorage.getItem('selectedProduct');
+        if (!stored || !stored.trim()) return null;
+        const product = JSON.parse(stored);
+        if (!product || typeof product !== 'object' || Array.isArray(product)) return null;
+        const hasName = ['name_en', 'name_ar', 'productName', 'productNameAR', 'name', 'title']
+          .some(key => typeof product[key] === 'string' && product[key].trim().length > 0);
+        const hasId = ['id', 'productId', 'productID', 'docId']
+          .some(key => (typeof product[key] === 'string' && product[key].trim().length > 0) || (typeof product[key] === 'number' && Number.isFinite(product[key])));
+        return hasName || hasId ? product : null;
+      } catch { return null; }
+    }
     const readSessionFavorites = () => {
       try { const value = JSON.parse(sessionStorage.getItem('favoriteList') || '[]'); return Array.isArray(value) ? value : []; }
       catch { return []; }
@@ -370,9 +383,11 @@
         button.append(swatch, name);
         button.addEventListener('click', async () => {
           try {
-            const user = authKnown ? currentUser : await initialAuth;
             sessionStorage.setItem('selectedColor', JSON.stringify({ order: color.order, img: color.img, colorName: color.colorName, colorNameAR: color.colorNameAR, colorCode: color.colorCode }));
-            window.location.href = user ? './confirm-order.html' : './login.html';
+            const user = authKnown ? currentUser : await initialAuth;
+            if (!user) { window.location.href = './login.html'; return; }
+            if (!getValidSelectedProduct()) { window.location.href = './inventory.html'; return; }
+            window.location.href = './confirm-order.html';
           } catch (error) {
             status.textContent = 'Could not save your selection. Please try again.';
           }
