@@ -15,8 +15,7 @@
   <style>
     body { font-family: Inter, sans-serif; }
     .palette-card { -webkit-tap-highlight-color: transparent; }
-    .palette-swatch { aspect-ratio: 1 / 1.16; }
-    @media (min-width: 768px) { .palette-swatch { aspect-ratio: 1 / 1.16; } }
+    .palette-swatch { aspect-ratio: 0.89 / 1; }
   </style>
 </head>
 <body class="min-h-screen bg-white text-bc-charcoal antialiased">
@@ -43,10 +42,18 @@
     <section class="max-w-7xl mx-auto px-5 sm:px-6 lg:px-8">
       <div class="text-center mb-10 sm:mb-11"><h1 class="font-display font-extrabold text-4xl sm:text-5xl tracking-tight text-[#363a37]">Choose your color</h1><p class="mt-2 text-lg sm:text-2xl text-[#464a47]">Find the perfect shade to match your vision—durable, vibrant, and built to last.</p></div>
       <div id="palette-status" class="min-h-10 text-center text-bc-gray" role="status" aria-live="polite">Loading colors…</div>
-      <div id="palette-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 sm:gap-x-12 lg:gap-x-16 gap-y-10 sm:gap-y-14 max-w-6xl mx-auto" aria-label="Color palette"></div>
+      <div id="palette-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 sm:gap-x-10 lg:gap-x-12 gap-y-9 sm:gap-y-12 max-w-5xl mx-auto" aria-label="Color palette"></div>
       <div class="text-center mt-10"><button id="show-more" type="button" class="hidden bg-[#393d3a] text-white text-xl sm:text-2xl px-8 py-2.5 rounded-full hover:bg-bc-green-dark focus:outline-none focus-visible:ring-4 focus-visible:ring-bc-green/40 transition-colors">Show More</button></div>
     </section>
   </main>
+
+  <div id="favorite-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-bc-charcoal/60 p-4" role="presentation">
+    <section class="w-full max-w-lg max-h-[85vh] overflow-hidden rounded-2xl bg-white shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="favorite-modal-title" aria-describedby="favorite-modal-message">
+      <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-6"><h2 id="favorite-modal-title" class="text-xl font-bold text-bc-charcoal">Select The Product</h2><button id="favorite-close" type="button" class="rounded-full p-2 text-gray-500 hover:bg-gray-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-bc-green" aria-label="Close dialog">×</button></div>
+      <div class="overflow-y-auto px-5 py-4 sm:px-6"><p id="favorite-modal-message" class="mb-3 min-h-6 text-sm text-bc-gray" role="status" aria-live="polite">Loading products…</p><div id="favorite-products" class="space-y-2"></div></div>
+      <div class="flex flex-col-reverse gap-3 border-t border-gray-100 px-5 py-4 sm:flex-row sm:justify-end sm:px-6"><button id="favorite-cancel" type="button" class="rounded-full border border-gray-300 px-5 py-2.5 font-semibold text-bc-charcoal hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-bc-green">Cancel</button><button id="favorite-confirm" type="button" class="rounded-full bg-bc-green px-5 py-2.5 font-semibold text-white hover:bg-bc-green-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-bc-green disabled:cursor-not-allowed disabled:opacity-50">Add to Favorites</button></div>
+    </section>
+  </div>
 
   <footer id="contact" class="bg-[#393d3a] text-white"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 sm:pt-16 pb-8">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10 lg:gap-8 mb-12">
@@ -63,54 +70,211 @@
   <script type="module">
     import { auth, db } from './firebase-config.js';
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-auth.js';
-    import { collection, getDocs, query, orderBy } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
+    import { collection, getDocs, getDoc, query, orderBy, doc, writeBatch } from 'https://www.gstatic.com/firebasejs/12.17.1/firebase-firestore.js';
 
     const grid = document.getElementById('palette-grid');
     const status = document.getElementById('palette-status');
     const moreButton = document.getElementById('show-more');
+    const modal = document.getElementById('favorite-modal');
+    const modalTitle = document.getElementById('favorite-modal-title');
+    const modalMessage = document.getElementById('favorite-modal-message');
+    const productList = document.getElementById('favorite-products');
+    const confirmButton = document.getElementById('favorite-confirm');
+    const closeButton = document.getElementById('favorite-close');
+    const cancelButton = document.getElementById('favorite-cancel');
     const pageSize = 9;
     let colors = [];
     let visibleCount = pageSize;
-    const getAuthUser = () => new Promise(resolve => {
-      let unsubscribe = () => {};
-      unsubscribe = onAuthStateChanged(auth, user => { unsubscribe(); resolve(user); });
+    let currentUser = null;
+    let authKnown = false;
+    let selectedColor = null;
+    let products = [];
+    let favorites = [];
+    let modalTrigger = null;
+    let resolveInitialAuth;
+    const initialAuth = new Promise(resolve => { resolveInitialAuth = resolve; });
+    const readSessionFavorites = () => {
+      try { const value = JSON.parse(sessionStorage.getItem('favoriteList') || '[]'); return Array.isArray(value) ? value : []; }
+      catch { return []; }
+    };
+    const favoriteKey = favorite => `${Number(favorite.colorCode)}|${favorite.productName}`;
+    const favoriteDocId = favorite => `color-${Number(favorite.colorCode)}-product-${encodeURIComponent(favorite.productName)}`;
+
+    async function loadUserFavorites(user) {
+      const snapshot = await getDocs(collection(db, 'users', user.uid, 'favoriteList'));
+      favorites = snapshot.docs.map(item => item.data());
+      render();
+    }
+
+    async function mergeGuestFavorites(user) {
+      const guestFavorites = readSessionFavorites();
+      if (!guestFavorites.length) return;
+      const favoriteRef = collection(db, 'users', user.uid, 'favoriteList');
+      const existingSnapshot = await getDocs(favoriteRef);
+      const existing = new Set(existingSnapshot.docs.map(item => favoriteKey(item.data())));
+      const batch = writeBatch(db);
+      let pending = 0;
+      for (const favorite of guestFavorites) {
+        const key = favoriteKey(favorite);
+        if (existing.has(key)) continue;
+        existing.add(key);
+        batch.set(doc(favoriteRef, favoriteDocId(favorite)), favorite);
+        pending += 1;
+      }
+      if (pending) await batch.commit();
+      sessionStorage.removeItem('favoriteList');
+    }
+
+    onAuthStateChanged(auth, async user => {
+      currentUser = user;
+      if (!authKnown) { authKnown = true; resolveInitialAuth(user); }
+      try {
+        if (user) { await mergeGuestFavorites(user); await loadUserFavorites(user); }
+        else { favorites = readSessionFavorites(); render(); }
+      } catch (error) { console.error('Could not load or migrate favorites:', error); }
     });
+
+    function updateFavoriteButtons() {
+      grid.querySelectorAll('[data-favorite-color]').forEach(button => {
+        const isActive = favorites.some(item => Number(item.colorCode) === Number(button.dataset.favoriteColor));
+        button.classList.toggle('bg-bc-green', isActive);
+        button.classList.toggle('text-white', isActive);
+        button.classList.toggle('bg-white', !isActive);
+        button.classList.toggle('text-bc-charcoal', !isActive);
+        button.setAttribute('aria-pressed', String(isActive));
+      });
+    }
 
     function render() {
       grid.replaceChildren();
       colors.slice(0, visibleCount).forEach(color => {
+        const card = document.createElement('article');
+        card.className = 'palette-card relative overflow-hidden bg-bc-light';
         const button = document.createElement('button');
         button.type = 'button';
-        button.className = 'palette-card group block w-full text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-bc-green/40 rounded-sm';
-        button.setAttribute('aria-label', `${color.colorName}, ${color.colorCode}`);
+        button.className = 'block w-full text-left focus:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-bc-green/40';
+        button.setAttribute('aria-label', `Select ${color.colorName}, ${color.colorCode}`);
         const swatch = document.createElement('span');
-        swatch.className = 'palette-swatch relative flex items-center justify-center w-full overflow-hidden transition-transform duration-200 group-hover:scale-[1.015]';
+        swatch.className = 'palette-swatch relative flex items-center justify-center w-full overflow-hidden';
         swatch.style.backgroundColor = color.img;
         const code = document.createElement('span');
         code.className = 'text-white text-4xl sm:text-5xl font-normal drop-shadow-sm';
         code.textContent = String(color.colorCode);
         swatch.append(code);
         const name = document.createElement('span');
-        name.className = 'block pt-3 text-center text-base sm:text-lg font-medium text-bc-charcoal';
+        name.className = 'block min-h-16 px-2 py-3 text-center text-lg sm:text-xl font-semibold text-bc-charcoal';
         name.textContent = color.colorName;
         button.append(swatch, name);
         button.addEventListener('click', async () => {
-          button.disabled = true;
           try {
-            const user = await getAuthUser();
-            sessionStorage.setItem('selectedColor', JSON.stringify({ order: color.order, img: color.img, colorName: color.colorName, colorCode: color.colorCode }));
+            const user = authKnown ? currentUser : await initialAuth;
+            sessionStorage.setItem('selectedColor', JSON.stringify({ order: color.order, img: color.img, colorName: color.colorName, colorNameAR: color.colorNameAR, colorCode: color.colorCode }));
             window.location.href = user ? './confirm-order.html' : './login.html';
           } catch (error) {
-            button.disabled = false;
             status.textContent = 'Could not save your selection. Please try again.';
           }
         });
-        grid.append(button);
+        const heart = document.createElement('button');
+        heart.type = 'button';
+        heart.dataset.favoriteColor = String(color.colorCode);
+        heart.className = 'absolute top-3 start-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white text-bc-charcoal shadow-sm transition-colors hover:scale-105 focus:outline-none focus-visible:ring-4 focus-visible:ring-bc-green/40';
+        heart.setAttribute('aria-label', `Add ${color.colorName} to favorites`);
+        heart.setAttribute('aria-pressed', 'false');
+        heart.innerHTML = '<svg aria-hidden="true" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/></svg>';
+        heart.addEventListener('click', event => { event.stopPropagation(); openFavoriteModal(color, heart); });
+        card.append(button, heart);
+        grid.append(card);
       });
       moreButton.classList.toggle('hidden', visibleCount >= colors.length);
       status.textContent = colors.length ? '' : 'No colors are available yet.';
       status.classList.toggle('sr-only', Boolean(colors.length));
+      updateFavoriteButtons();
     }
+
+    function closeFavoriteModal() {
+      modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('overflow-hidden');
+      selectedColor = null; productList.replaceChildren(); confirmButton.disabled = false;
+      if (modalTrigger?.isConnected) modalTrigger.focus();
+      modalTrigger = null;
+    }
+
+    function showProductOptions() {
+      productList.replaceChildren();
+      if (!products.length) { modalMessage.textContent = 'No products are available.'; confirmButton.disabled = true; return; }
+      modalMessage.textContent = '';
+      confirmButton.disabled = false;
+      products.forEach(product => {
+        const available = product.status === 'available';
+        const label = document.createElement('label');
+        label.className = `flex items-center gap-3 rounded-lg border border-gray-200 p-3 ${available ? 'cursor-pointer hover:border-bc-green' : 'cursor-not-allowed opacity-50'}`;
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox'; checkbox.value = product.id; checkbox.disabled = !available;
+        checkbox.className = 'h-5 w-5 accent-[#5A7343]';
+        const text = document.createElement('span'); text.className = 'font-medium text-bc-charcoal';
+        text.textContent = product.name_en || 'Unnamed product';
+        label.append(checkbox, text);
+        if (product.status === 'coming_soon') { const badge = document.createElement('span'); badge.className = 'text-sm text-bc-gray'; badge.textContent = '(Coming Soon)'; label.append(badge); }
+        productList.append(label);
+      });
+    }
+
+    async function openFavoriteModal(color, trigger) {
+      modalTrigger = trigger;
+      modalTitle.textContent = 'Select The Product'; modalMessage.textContent = 'Loading products…'; confirmButton.disabled = true;
+      productList.replaceChildren(); modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.classList.add('overflow-hidden');
+      closeButton.focus();
+      try {
+        const [colorSnapshot, productSnapshot] = await Promise.all([
+          getDoc(doc(db, 'colorPalettecms', color.id)),
+          getDocs(collection(db, 'inventorycms'))
+        ]);
+        if (!colorSnapshot.exists()) throw new Error('Selected color no longer exists.');
+        const data = colorSnapshot.data();
+        selectedColor = { order: data.order, img: data.img, colorName: data.colorName, colorNameAR: data.colorNameAR, colorCode: Number(data.colorCode) };
+        products = productSnapshot.docs.map(item => ({ id: item.id, ...item.data() }));
+        showProductOptions();
+      } catch (error) { console.error('Could not load favorite choices:', error); modalMessage.textContent = 'Products could not be loaded. Please try again.'; }
+    }
+
+    async function saveSelectedFavorites() {
+      if (!selectedColor) return;
+      const chosen = [...productList.querySelectorAll('input[type="checkbox"]:checked')].map(input => products.find(product => product.id === input.value)).filter(Boolean);
+      if (!chosen.length) { modalMessage.textContent = 'Select at least one available product.'; return; }
+      confirmButton.disabled = true; modalMessage.textContent = 'Saving favorites…';
+      try {
+        const user = authKnown ? currentUser : await initialAuth;
+        const newFavorites = chosen.map(product => ({ img: selectedColor.img, colorCode: Number(selectedColor.colorCode), colorName: selectedColor.colorName, colorNameAR: selectedColor.colorNameAR || '', productName: product.name_en || '', productNameAR: product.name_ar || '' })).filter(favorite => Number.isInteger(favorite.colorCode));
+        if (user) {
+          const favoriteRef = collection(db, 'users', user.uid, 'favoriteList');
+          const existingSnapshot = await getDocs(favoriteRef);
+          const existing = new Set(existingSnapshot.docs.map(item => favoriteKey(item.data())));
+          const batch = writeBatch(db); let pending = 0;
+          newFavorites.forEach(favorite => { const key = favoriteKey(favorite); if (!existing.has(key)) { existing.add(key); batch.set(doc(favoriteRef, favoriteDocId(favorite)), favorite); pending += 1; } });
+          if (pending) await batch.commit();
+          await loadUserFavorites(user);
+          modalMessage.textContent = pending ? 'Favorites added.' : 'These favorites are already in your list.';
+        } else {
+          const combined = [...readSessionFavorites()]; const existing = new Set(combined.map(favoriteKey)); let pending = 0;
+          newFavorites.forEach(favorite => { const key = favoriteKey(favorite); if (!existing.has(key)) { existing.add(key); combined.push(favorite); pending += 1; } });
+          sessionStorage.setItem('favoriteList', JSON.stringify(combined)); favorites = combined; render();
+          modalMessage.textContent = pending ? 'Favorites saved for this session.' : 'These favorites are already in your list.';
+        }
+        setTimeout(closeFavoriteModal, 650);
+      } catch (error) { console.error('Could not save favorites:', error); modalMessage.textContent = 'Favorites could not be saved. Please try again.'; confirmButton.disabled = false; }
+    }
+
+    closeButton.addEventListener('click', closeFavoriteModal);
+    cancelButton.addEventListener('click', closeFavoriteModal);
+    modal.addEventListener('click', event => { if (event.target === modal) closeFavoriteModal(); });
+    confirmButton.addEventListener('click', saveSelectedFavorites);
+    modal.addEventListener('keydown', event => {
+      if (event.key === 'Escape') { closeFavoriteModal(); return; }
+      if (event.key !== 'Tab') return;
+      const focusable = [...modal.querySelectorAll('button:not(:disabled), input:not(:disabled)')];
+      if (!focusable.length) return;
+      if (event.shiftKey && document.activeElement === focusable[0]) { event.preventDefault(); focusable.at(-1).focus(); }
+      else if (!event.shiftKey && document.activeElement === focusable.at(-1)) { event.preventDefault(); focusable[0].focus(); }
+    });
 
     moreButton.addEventListener('click', () => { visibleCount += pageSize; render(); });
     try {
