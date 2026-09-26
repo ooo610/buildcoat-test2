@@ -290,6 +290,7 @@
     let currentUser = null;
     let authKnown = false;
     let selectedColor = null;
+    let modalMode = 'add';
     let products = [];
     let favorites = [];
     let modalTrigger = null;
@@ -383,7 +384,12 @@
         heart.setAttribute('aria-label', `Add ${color.colorName} to favorites`);
         heart.setAttribute('aria-pressed', 'false');
         heart.innerHTML = '<svg aria-hidden="true" class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/></svg>';
-        heart.addEventListener('click', event => { event.stopPropagation(); openFavoriteModal(color, heart); });
+        heart.addEventListener('click', event => {
+          event.stopPropagation();
+          const alreadyFavorite = favorites.some(item => Number(item.colorCode) === Number(color.colorCode));
+          if (alreadyFavorite) openDeleteConfirmation(color, heart);
+          else openFavoriteModal(color, heart);
+        });
         card.append(button, heart);
         grid.append(card);
       });
@@ -396,8 +402,32 @@
     function closeFavoriteModal() {
       modal.classList.add('hidden'); modal.classList.remove('flex'); document.body.classList.remove('overflow-hidden');
       selectedColor = null; productList.replaceChildren(); confirmButton.disabled = false;
+      productList.classList.remove('hidden');
+      confirmButton.textContent = 'Add to Favorites';
+      confirmButton.className = 'rounded-full bg-bc-green px-5 py-2.5 font-semibold text-white hover:bg-bc-green-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-bc-green disabled:cursor-not-allowed disabled:opacity-50';
+      cancelButton.textContent = 'Cancel';
+      cancelButton.className = 'rounded-full border border-gray-300 px-5 py-2.5 font-semibold text-bc-charcoal hover:bg-gray-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-bc-green';
+      modalMode = 'add';
       if (modalTrigger?.isConnected) modalTrigger.focus();
       modalTrigger = null;
+    }
+
+    function openDeleteConfirmation(color, trigger) {
+      modalMode = 'delete';
+      modalTrigger = trigger;
+      selectedColor = { colorCode: Number(color.colorCode) };
+      products = [];
+      productList.replaceChildren();
+      productList.classList.add('hidden');
+      modalTitle.textContent = 'Do you want to remove this color from your favorite list?';
+      modalMessage.textContent = '';
+      confirmButton.textContent = 'Delete';
+      confirmButton.className = 'rounded-full bg-bc-charcoal px-5 py-2.5 font-semibold text-white hover:bg-bc-charcoal-mid focus:outline-none focus-visible:ring-2 focus-visible:ring-bc-charcoal disabled:cursor-not-allowed disabled:opacity-50';
+      confirmButton.disabled = false;
+      cancelButton.textContent = 'Cancel';
+      cancelButton.className = 'rounded-full bg-bc-green px-5 py-2.5 font-semibold text-white hover:bg-bc-green-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-bc-green';
+      modal.classList.remove('hidden'); modal.classList.add('flex'); document.body.classList.add('overflow-hidden');
+      cancelButton.focus();
     }
 
     function showProductOptions() {
@@ -440,6 +470,7 @@
 
     async function saveSelectedFavorites() {
       if (!selectedColor) return;
+      if (modalMode === 'delete') { await deleteColorFavorites(); return; }
       const chosen = [...productList.querySelectorAll('input[type="checkbox"]:checked')].map(input => products.find(product => product.id === input.value)).filter(Boolean);
       if (!chosen.length) { modalMessage.textContent = 'Select at least one available product.'; return; }
       confirmButton.disabled = true; modalMessage.textContent = 'Saving favorites…';
@@ -463,6 +494,38 @@
         }
         setTimeout(closeFavoriteModal, 650);
       } catch (error) { console.error('Could not save favorites:', error); modalMessage.textContent = 'Favorites could not be saved. Please try again.'; confirmButton.disabled = false; }
+    }
+
+    async function deleteColorFavorites() {
+      const colorCode = Number(selectedColor?.colorCode);
+      if (!Number.isInteger(colorCode)) return;
+      confirmButton.disabled = true;
+      modalMessage.textContent = 'Deleting favorites…';
+      try {
+        const user = authKnown ? currentUser : await initialAuth;
+        if (user) {
+          const favoriteRef = collection(db, 'users', user.uid, 'favoriteList');
+          const snapshot = await getDocs(favoriteRef);
+          const batch = writeBatch(db);
+          let deletions = 0;
+          snapshot.docs.forEach(item => {
+            if (Number(item.data().colorCode) === colorCode) { batch.delete(doc(favoriteRef, item.id)); deletions += 1; }
+          });
+          if (deletions) await batch.commit();
+          await loadUserFavorites(user);
+        } else {
+          const remaining = readSessionFavorites().filter(item => Number(item.colorCode) !== colorCode);
+          sessionStorage.setItem('favoriteList', JSON.stringify(remaining));
+          favorites = remaining;
+          render();
+        }
+        modalMessage.textContent = 'Color removed from your favorites.';
+        setTimeout(closeFavoriteModal, 500);
+      } catch (error) {
+        console.error('Could not delete favorite color:', error);
+        modalMessage.textContent = 'The color could not be removed. Please try again.';
+        confirmButton.disabled = false;
+      }
     }
 
     closeButton.addEventListener('click', closeFavoriteModal);
