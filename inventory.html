@@ -305,6 +305,16 @@
 
     const isAr = document.documentElement.dir === 'rtl';
     const container = document.getElementById('products-container');
+    let products = [];
+
+    function hasValidSessionSelection(key) {
+      try {
+        const stored = sessionStorage.getItem(key);
+        if (!stored || !stored.trim()) return false;
+        const value = JSON.parse(stored);
+        return Boolean(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length);
+      } catch { return false; }
+    }
 
     // Scroll-reveal helper (replaces old inline script)
     function revealOnScroll() {
@@ -314,13 +324,12 @@
       });
     }
 
-    function buildArticleHTML(data, isLast) {
+    function buildArticleHTML(data, isLast, productIndex) {
       const name    = isAr ? data.name_ar    : data.name_en;
       const tagline = isAr ? data.tagline_ar : data.tagline_en;
       const desc    = isAr ? data.desc_ar    : data.desc_en;
       const price   = isAr ? data.price_ar   : data.price_en;
       const weight  = isAr ? data.weight_ar  : data.weight_en;
-      const btnLink = data.btnLink || '#';
       const isAvail = data.status === 'available';
 
       const descMargin = isAvail ? 'mb-6' : 'mb-8';
@@ -334,7 +343,7 @@
               ${price  ? `<p class="price-tag text-base sm:text-lg">${price}</p>` : ''}
               ${weight ? `<p class="price-tag text-base sm:text-lg">${weight}</p>` : ''}
             </div>
-            <a href="${btnLink}"
+            <a href="./color-palette.html" data-product-index="${productIndex}"
                class="btn-choose inline-flex items-center justify-center gap-2 bg-bc-green hover:bg-bc-green-dark text-white font-bold px-8 py-3.5 rounded-full active:scale-95 transition-all duration-200 shadow-md text-sm sm:text-base whitespace-nowrap self-start sm:self-auto">
               <span>${btnLabel}</span>
               <svg class="w-4 h-4 rtl:rotate-180 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -368,14 +377,15 @@
         const q = query(collection(db, 'inventorycms'), orderBy('order'));
         const snap = await getDocs(q);
         const docs = snap.docs;
+        products = docs.map(d => ({ ...d.data(), id: d.id }));
 
         if (docs.length === 0) {
           container.innerHTML = `<p class="text-bc-gray text-center py-10">${isAr ? 'لا توجد منتجات حالياً.' : 'No products found.'}</p>`;
           return;
         }
 
-        container.innerHTML = docs.map((d, i) =>
-          buildArticleHTML(d.data(), i === docs.length - 1)
+        container.innerHTML = products.map((product, i) =>
+          buildArticleHTML(product, i === products.length - 1, i)
         ).join('');
 
       } catch (err) {
@@ -387,6 +397,26 @@
       revealOnScroll();
       window.addEventListener('scroll', revealOnScroll, { passive: true });
     }
+
+    container.addEventListener('click', event => {
+      const link = event.target.closest('a.btn-choose[data-product-index]');
+      if (!link || !container.contains(link)) return;
+      event.preventDefault();
+
+      const product = products[Number(link.dataset.productIndex)];
+      if (!product) return;
+
+      try {
+        sessionStorage.setItem('selectedProduct', JSON.stringify(product));
+        if (hasValidSessionSelection('selectedColor')) {
+          window.location.href = './confirmation-order.html';
+          return;
+        }
+        window.location.href = './color-palette.html';
+      } catch (error) {
+        console.error('Could not save the selected product:', error);
+      }
+    });
 
     document.addEventListener('DOMContentLoaded', loadProducts);
   </script>

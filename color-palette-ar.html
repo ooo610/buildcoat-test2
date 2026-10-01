@@ -350,11 +350,11 @@
         button.append(swatch, name);
         button.addEventListener('click', async () => {
           try {
-            sessionStorage.setItem('selectedColor', JSON.stringify({ order: color.order, img: color.img, colorName: color.colorName, colorNameAR: color.colorNameAR, colorCode: color.colorCode }));
             const user = authKnown ? currentUser : await initialAuth;
+            sessionStorage.setItem('selectedColor', JSON.stringify({ order: color.order, img: color.img, colorName: color.colorName, colorNameAR: color.colorNameAR, colorCode: color.colorCode }));
             if (!user) { window.location.href = './login-ar.html'; return; }
             if (!getValidSelectedProduct()) { window.location.href = './inventory-ar.html'; return; }
-            window.location.href = './confirm-order-ar.html';
+            window.location.href = './confirmation-order-ar.html';
           } catch (error) {
             status.textContent = 'تعذر حفظ اختيارك. حاول مرة أخرى.';
           }

@@ -1765,7 +1765,7 @@
     // 5. تغيير رقم الموبايل — العملية مملوكة للـ Backend
     // =========================================================
 
-    let phoneSessionInfo = null;
+    let phoneOperationId = null;
     let recaptchaVerifier;
 
     const PHONE_CHANGE_API =
@@ -1858,7 +1858,7 @@
             recaptchaToken
           });
 
-          phoneSessionInfo = result.sessionInfo;
+          phoneOperationId = result.operationId;
 
           document.getElementById('phone-request-step').classList.add('hidden');
           document.getElementById('phone-verify-step').classList.remove('hidden');
@@ -1881,7 +1881,7 @@
     });
 
     document.getElementById('btn-cancel-phone').addEventListener('click', () => {
-      phoneSessionInfo = null;
+      phoneOperationId = null;
       document.getElementById('phone-verify-step').classList.add('hidden');
       document.getElementById('phone-request-step').classList.remove('hidden');
       document.getElementById('inp-sms-code').value = '';
@@ -1892,7 +1892,7 @@
 
       const code = document.getElementById('inp-sms-code').value.trim();
 
-      if (!phoneSessionInfo) {
+      if (!phoneOperationId) {
         showMsg('انتهت جلسة التأكيد. ابدأ العملية مرة أخرى.', true);
         return;
       }
@@ -1907,7 +1907,7 @@
       const confirmPhoneLogic = async () => {
         try {
           await callPhoneChangeAPI('confirm', {
-            sessionInfo: phoneSessionInfo,
+            operationId: phoneOperationId,
             code
           });
 
@@ -1917,7 +1917,7 @@
 
           showMsg('تم تحديث رقم الموبايل بنجاح!');
 
-          phoneSessionInfo = null;
+          phoneOperationId = null;
           document.getElementById('phone-verify-step').classList.add('hidden');
           document.getElementById('phone-request-step').classList.remove('hidden');
           document.getElementById('inp-sms-code').value = '';

@@ -453,17 +453,16 @@
 
     const timeout = (ms) => new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), ms));
 
+    function hasValidSessionSelection(key) {
+      try {
+        const stored = sessionStorage.getItem(key);
+        if (!stored || !stored.trim()) return false;
+        const value = JSON.parse(stored);
+        return Boolean(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length);
+      } catch { return false; }
+    }
+
     async function goToDashboard(user, method) {
-      const hasOrderSelections = (() => {
-        try {
-          return Boolean(
-            sessionStorage.getItem('selectedProduct')?.trim() &&
-            sessionStorage.getItem('selectedColor')?.trim()
-          );
-        } catch (e) {
-          return false;
-        }
-      })();
       try {
         const snap = await Promise.race([
           getDoc(doc(db, 'users', user.uid)),
@@ -484,12 +483,20 @@
           console.warn("Failed to log loginHistory", e);
         }
 
-        window.location.href = hasOrderSelections
-          ? './confirm-order-ar.html'
-          : (profileComplete ? './index-ar.html' : './complete-profile-ar.html');
+        if (!profileComplete) {
+          window.location.href = './complete-profile-ar.html';
+          return;
+        }
+
+        const hasProduct = hasValidSessionSelection('selectedProduct');
+        const hasColor = hasValidSessionSelection('selectedColor');
+        if (hasProduct && hasColor) window.location.href = './confirmation-order-ar.html';
+        else if (hasProduct) window.location.href = './color-palette-ar.html';
+        else if (hasColor) window.location.href = './inventory-ar.html';
+        else window.location.href = './index-ar.html';
       } catch (err) {
         console.error('فحص البروفايل فشل أو تأخر، التوجيه لصفحة الإكمال:', err);
-        window.location.href = hasOrderSelections ? './confirm-order-ar.html' : './complete-profile-ar.html';
+        window.location.href = './complete-profile-ar.html';
       }
     }
 

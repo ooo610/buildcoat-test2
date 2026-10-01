@@ -462,7 +462,7 @@
             operationId,
             code,
             // Password is sent only over HTTPS at the final step.
-            // It is never written into phoneSignupOperations.
+            // Operation state is sealed into the short-lived token by the server.
             password: pendingSignup.password
           });
 

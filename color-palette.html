@@ -383,11 +383,11 @@
         button.append(swatch, name);
         button.addEventListener('click', async () => {
           try {
-            sessionStorage.setItem('selectedColor', JSON.stringify({ order: color.order, img: color.img, colorName: color.colorName, colorNameAR: color.colorNameAR, colorCode: color.colorCode }));
             const user = authKnown ? currentUser : await initialAuth;
+            sessionStorage.setItem('selectedColor', JSON.stringify({ order: color.order, img: color.img, colorName: color.colorName, colorNameAR: color.colorNameAR, colorCode: color.colorCode }));
             if (!user) { window.location.href = './login.html'; return; }
             if (!getValidSelectedProduct()) { window.location.href = './inventory.html'; return; }
-            window.location.href = './confirm-order.html';
+            window.location.href = './confirmation-order.html';
           } catch (error) {
             status.textContent = 'Could not save your selection. Please try again.';
           }
