@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
 
 if (!admin.apps.length) {
   admin.initializeApp({
@@ -15,6 +16,48 @@ const IDENTITY_TOOLKIT_URL =
   'https://identitytoolkit.googleapis.com/v1';
 
 const API_KEY = process.env.FIREBASE_WEB_API_KEY;
+const PHONE_OPERATION_TTL_MS = 15 * 60 * 1000;
+
+function getPhoneOperationKey() {
+  const secret = process.env.PHONE_OPERATION_TOKEN_SECRET || process.env.FIREBASE_PRIVATE_KEY;
+  if (!secret) throw new Error('A phone operation token secret is not configured.');
+  return createHash('sha256').update(secret).digest();
+}
+
+function sealPhoneOperation(operation) {
+  const iv = randomBytes(12);
+  const cipher = createCipheriv('aes-256-gcm', getPhoneOperationKey(), iv);
+  const payload = Buffer.from(JSON.stringify({
+    ...operation,
+    expiresAt: Date.now() + PHONE_OPERATION_TTL_MS
+  }));
+  const encrypted = Buffer.concat([cipher.update(payload), cipher.final()]);
+  return [iv.toString('base64url'), cipher.getAuthTag().toString('base64url'), encrypted.toString('base64url')].join('.');
+}
+
+function openPhoneOperation(token) {
+  const parts = String(token || '').split('.');
+  if (parts.length !== 3) throw new Error('Invalid phone operation token.');
+
+  const [ivPart, tagPart, encryptedPart] = parts;
+  const iv = Buffer.from(ivPart, 'base64url');
+  const tag = Buffer.from(tagPart, 'base64url');
+  const encrypted = Buffer.from(encryptedPart, 'base64url');
+  if (iv.length !== 12 || tag.length !== 16 || !encrypted.length) {
+    throw new Error('Invalid phone operation token.');
+  }
+
+  const decipher = createDecipheriv('aes-256-gcm', getPhoneOperationKey(), iv);
+  decipher.setAuthTag(tag);
+  const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+  const operation = JSON.parse(decrypted.toString('utf8'));
+  if (!Number.isFinite(operation.expiresAt) || operation.expiresAt < Date.now()) {
+    const error = new Error('Phone operation token expired.');
+    error.code = 'PHONE_OPERATION_EXPIRED';
+    throw error;
+  }
+  return operation;
+}
 
 function json(res, status, body) {
   return res.status(status).json(body);
@@ -96,17 +139,6 @@ async function callIdentityToolkit(path, body, locale = 'en') {
   return data;
 }
 
-async function writeOperation(uid, values) {
-  await db.collection('phoneChangeOperations').doc(uid).set(
-    {
-      uid,
-      ...values,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp()
-    },
-    { merge: true }
-  );
-}
-
 async function commitPhoneFirestore(uid, oldPhone, newPhone) {
   let lastError = null;
 
@@ -185,7 +217,7 @@ async function rollbackAuthPhone(uid, expectedNewPhone, oldPhone) {
 }
 
 async function handleStart(req, res, locale) {
-  const { idToken, decodedToken } = await verifyCurrentUser(req);
+  const { decodedToken } = await verifyCurrentUser(req);
   const phone = String(req.body?.phone || '').trim();
   const recaptchaToken = String(req.body?.recaptchaToken || '').trim();
 
@@ -217,26 +249,6 @@ async function handleStart(req, res, locale) {
     });
   }
 
-  const operationRef = db.collection('phoneChangeOperations').doc(uid);
-  const operationSnap = await operationRef.get();
-  const operation = operationSnap.exists ? operationSnap.data() : null;
-
-  if (operation?.status === 'pending') {
-    return json(res, 409, {
-      ok: false,
-      code: 'PHONE_CHANGE_ALREADY_PENDING',
-      error: 'A phone number change is already in progress.'
-    });
-  }
-
-  // Persist the intended operation BEFORE Auth is allowed to change.
-  await writeOperation(uid, {
-    status: 'pending',
-    oldPhone,
-    newPhone: phone,
-    createdAt: admin.firestore.FieldValue.serverTimestamp()
-  });
-
   try {
     const result = await callIdentityToolkit(
       'accounts:sendVerificationCode',
@@ -247,21 +259,16 @@ async function handleStart(req, res, locale) {
       locale
     );
 
-    await writeOperation(uid, {
-      status: 'code-sent'
+    const operationId = sealPhoneOperation({
+      flow: 'phone-change', uid, oldPhone, newPhone: phone,
+      sessionInfo: result.sessionInfo
     });
 
     return json(res, 200, {
       ok: true,
-      sessionInfo: result.sessionInfo
+      operationId
     });
   } catch (error) {
-    await writeOperation(uid, {
-      status: 'failed'
-    }).catch((writeError) => {
-      console.error('Failed to mark phone operation as failed:', writeError);
-    });
-
     console.error('Phone verification SMS send failed:', error);
 
     return json(res, 400, {
@@ -274,10 +281,25 @@ async function handleStart(req, res, locale) {
 
 async function handleConfirm(req, res, locale) {
   const { idToken, decodedToken } = await verifyCurrentUser(req);
-  const sessionInfo = String(req.body?.sessionInfo || '').trim();
+  let operation;
+  try {
+    operation = openPhoneOperation(req.body?.operationId);
+  } catch (error) {
+    return json(res, 409, {
+      ok: false,
+      code: error.code || 'PHONE_OPERATION_INVALID',
+      error: 'The phone verification session expired or is invalid. Start again.'
+    });
+  }
   const code = String(req.body?.code || '').trim();
 
-  if (!sessionInfo || !/^\d{6}$/.test(code)) {
+  if (
+    operation.flow !== 'phone-change' ||
+    operation.uid !== decodedToken.uid ||
+    !operation.sessionInfo ||
+    !operation.newPhone ||
+    !/^\d{6}$/.test(code)
+  ) {
     return json(res, 400, {
       ok: false,
       code: 'INVALID_VERIFICATION_INPUT',
@@ -286,20 +308,17 @@ async function handleConfirm(req, res, locale) {
   }
 
   const uid = decodedToken.uid;
-  const operationRef = db.collection('phoneChangeOperations').doc(uid);
-  const operationSnap = await operationRef.get();
-  const operation = operationSnap.exists ? operationSnap.data() : null;
-
-  if (!operation || operation.status !== 'code-sent') {
-    return json(res, 409, {
-      ok: false,
-      code: 'PHONE_CHANGE_NOT_PENDING',
-      error: 'No active phone change operation was found.'
-    });
-  }
-
   const oldPhone = operation.oldPhone || null;
   const expectedNewPhone = operation.newPhone || null;
+
+  const currentUser = await admin.auth().getUser(uid);
+  if ((currentUser.phoneNumber || null) !== oldPhone) {
+    return json(res, 409, {
+      ok: false,
+      code: 'PHONE_CHANGE_STATE_CHANGED',
+      error: 'The account phone number changed. Start verification again.'
+    });
+  }
 
   let authUpdated = false;
   let actualNewPhone = null;
@@ -314,7 +333,7 @@ async function handleConfirm(req, res, locale) {
     const result = await callIdentityToolkit(
       'accounts:signInWithPhoneNumber',
       {
-        sessionInfo,
+        sessionInfo: operation.sessionInfo,
         code,
         idToken,
         operation: 'UPDATE'
@@ -325,16 +344,12 @@ async function handleConfirm(req, res, locale) {
     actualNewPhone = result.phoneNumber || null;
     authUpdated = true;
 
-    if (!actualNewPhone || actualNewPhone !== expectedNewPhone) {
+    if (result.localId !== uid || !actualNewPhone || actualNewPhone !== expectedNewPhone) {
       const rolledBack = await rollbackAuthPhone(
         uid,
         actualNewPhone,
         oldPhone
       );
-
-      await writeOperation(uid, {
-        status: rolledBack ? 'rolled-back' : 'uncertain'
-      }).catch(() => {});
 
       return json(res, 500, {
         ok: false,
@@ -346,10 +361,6 @@ async function handleConfirm(req, res, locale) {
           : 'The phone change could not be completed or safely restored.'
       });
     }
-
-    await writeOperation(uid, {
-      status: 'auth-updated'
-    });
 
     try {
       await commitPhoneFirestore(
@@ -369,10 +380,6 @@ async function handleConfirm(req, res, locale) {
         oldPhone
       );
 
-      await writeOperation(uid, {
-        status: rolledBack ? 'rolled-back' : 'uncertain'
-      }).catch(() => {});
-
       if (!rolledBack) {
         return json(res, 500, {
           ok: false,
@@ -390,11 +397,6 @@ async function handleConfirm(req, res, locale) {
       });
     }
 
-    await writeOperation(uid, {
-      status: 'completed',
-      completedAt: admin.firestore.FieldValue.serverTimestamp()
-    });
-
     return json(res, 200, {
       ok: true,
       phoneNumber: actualNewPhone
@@ -411,10 +413,6 @@ async function handleConfirm(req, res, locale) {
           error: 'Recent authentication is required.'
         });
       }
-
-      await writeOperation(uid, {
-        status: 'code-failed'
-      }).catch(() => {});
 
       if (
         error.code === 'INVALID_CODE' ||
@@ -441,10 +439,6 @@ async function handleConfirm(req, res, locale) {
       actualNewPhone,
       oldPhone
     );
-
-    await writeOperation(uid, {
-      status: rolledBack ? 'rolled-back' : 'uncertain'
-    }).catch(() => {});
 
     if (!rolledBack) {
       return json(res, 500, {
