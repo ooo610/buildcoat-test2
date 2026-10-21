@@ -10,7 +10,7 @@ const text = isArabic ? {
   loadingProductsError: 'تعذر تحميل المنتجات. حاول تحديث الصفحة.', loadingColorsError: 'تعذر تحميل الألوان. حاول تحديث الصفحة.', loadingGovError: 'تعذر تحميل المحافظات. حاول تحديث الصفحة.',
   missingSelection: 'لم يعد الاختيار المحفوظ متاحًا. اختر قيمة متاحة من القوائم.', quantityInvalid: 'أدخل عددًا صحيحًا موجبًا من الشكاير.',
   addressInvalid: 'أدخل المدينة والعنوان بالتفصيل قبل المتابعة.', incomplete: 'أكمل جميع الحقول المطلوبة قبل المتابعة.', priceRequired: 'أكمل اختيار المنتج والكمية والمحافظة لعرض السعر.',
-  priceLoading: 'جارٍ تحديث السعر…', priceError: 'تعذر حساب السعر الآن. حاول مرة أخرى.', signIn: 'سجّل الدخول لإرسال الطلب.',
+  priceLoading: 'جارٍ تحديث السعر…', priceError: 'تعذر حساب السعر الآن. حاول مرة أخرى.', priceErrorCode: code => `رمز الخطأ من الخادم: ${code}`, signIn: 'سجّل الدخول لإرسال الطلب.',
   submitting: 'جارٍ إرسال الطلب…', submitError: 'تعذر إرسال الطلب. بياناتك محفوظة، ويمكنك المحاولة مرة أخرى.', priceChanged: 'تغيّر السعر. راجع الإجمالي المحدّث ثم اضغط متابعة مرة أخرى.',
   success: 'تم إرسال طلبك بنجاح.', noFavoriteProducts: 'لا توجد منتجات متاحة لإضافتها للمفضلة.',
   favoriteLoad: 'تعذر تحميل المنتجات. حاول مرة أخرى.', selectFavoriteProduct: 'اختر منتجًا واحدًا على الأقل.', saved: 'تمت الإضافة إلى المفضلة.', deleted: 'تم حذف اللون من المفضلة.',
@@ -24,7 +24,7 @@ const text = isArabic ? {
   loadingProductsError: 'Could not load products. Refresh the page and try again.', loadingColorsError: 'Could not load colors. Refresh the page and try again.', loadingGovError: 'Could not load governorates. Refresh the page and try again.',
   missingSelection: 'A saved selection is no longer available. Choose an available option from the lists.', quantityInvalid: 'Enter a positive whole number of sacks.',
   addressInvalid: 'Enter your city and full address before continuing.', incomplete: 'Complete all required fields before continuing.', priceRequired: 'Select a product, enter a quantity, and choose a governorate to see the price.',
-  priceLoading: 'Updating price…', priceError: 'Could not calculate the price. Please try again.', signIn: 'Sign in to submit your order.',
+  priceLoading: 'Updating price…', priceError: 'Could not calculate the price. Please try again.', priceErrorCode: code => `Server error code: ${code}`, signIn: 'Sign in to submit your order.',
   submitting: 'Submitting your order…', submitError: 'The order could not be submitted. Your details are saved; please try again.', priceChanged: 'The price changed. Review the updated total, then select Continue again.',
   success: 'Your order was submitted successfully.', noFavoriteProducts: 'No products are available to add to favorites.',
   favoriteLoad: 'Could not load products. Please try again.', selectFavoriteProduct: 'Select at least one product.', saved: 'Added to favorites.', deleted: 'Color removed from favorites.',
@@ -124,16 +124,22 @@ async function fetchPrice(key) {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ productId: productSelect.value, governorateId: governorateSelect.value, quantity: Number(quantityInput.value) })
     });
-    const data = await response.json();
+    let data;
+    try { data = await response.json(); }
+    catch { data = {}; }
     if (sequence !== quoteSequence || key !== currentPriceKey()) return;
-    if (!response.ok || !data.success) throw new Error(data.error || data.code || 'Price request failed.');
+    if (!response.ok || !data.success) {
+      const error = new Error(data.error || data.code || `Price request failed (HTTP ${response.status}).`);
+      error.code = data.code || `HTTP_${response.status}`;
+      throw error;
+    }
     latestPrice = data; latestPriceKey = key;
     $('price-cost').textContent = money(data.cost); $('price-shipping').textContent = money(data.shippingCost); $('price-total').textContent = money(data.totalCost);
     breakdown.classList.remove('hidden'); announce(''); updateContinue();
   } catch (error) {
     if (sequence !== quoteSequence) return;
     console.error('Order price request failed:', error);
-    invalidatePrice(text.priceError);
+    invalidatePrice(error.code ? text.priceErrorCode(error.code) : text.priceError);
   }
 }
 
@@ -376,7 +382,7 @@ async function submitOrder(event) {
   const requestQuote = { cost: latestPrice.cost, shippingCost: latestPrice.shippingCost, totalCost: latestPrice.totalCost };
   try {
     const token = await currentUser.getIdToken();
-    const response = await fetch(`${apiBase}/orders`, {
+    const response = await fetch(`${apiBase}/temporary-orders`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, 'Idempotency-Key': createIdempotencyKey() },
       body: JSON.stringify({
@@ -393,8 +399,8 @@ async function submitOrder(event) {
     }
     if (!response.ok || !data.success) throw new Error(data.error || data.code || 'Order submission failed.');
     sessionStorage.clear();
-    form.classList.add('hidden'); $('order-number').textContent = data.orderId; $('success-state').classList.remove('hidden');
-    announce(text.success);
+    const paymentPage = isArabic ? './payment-method-ar.html' : './payment-method.html';
+    window.location.assign(`${paymentPage}?orderId=${encodeURIComponent(data.temporaryOrderId)}`);
   } catch (error) {
     console.error('Order submission failed:', error);
     showError(error.message === 'AUTH_REQUIRED' ? text.signIn : text.submitError);
