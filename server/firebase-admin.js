@@ -47,11 +47,16 @@ export async function getPriceRecords(productId, governorateId) {
   const governorate = governorateSnapshot.data();
   if (product.active === false) return { error: 'PRODUCT_INACTIVE' };
   if (governorate.active === false) return { error: 'GOVERNORATE_INACTIVE' };
-  const unitPrice = Number(product.unitPrice);
-  const shippingCost = Number(governorate.shippingCost);
-  if (!Number.isFinite(unitPrice) || unitPrice < 0 || !Number.isFinite(shippingCost) || shippingCost < 0) {
-    return { error: 'PRICE_DATA_INVALID' };
+  let rawUnitPrice = product.unitPrice;
+  if (rawUnitPrice == null) {
+    const priceSnapshot = await db.collection('productsPrices').doc(productId).get();
+    if (priceSnapshot.exists) rawUnitPrice = priceSnapshot.data().unitPrice;
   }
+  if (rawUnitPrice == null || rawUnitPrice === '') return { error: 'PRODUCT_PRICE_MISSING' };
+  const unitPrice = Number(rawUnitPrice);
+  const shippingCost = Number(governorate.shippingCost);
+  if (!Number.isFinite(unitPrice) || unitPrice < 0) return { error: 'PRODUCT_PRICE_INVALID' };
+  if (governorate.shippingCost == null || governorate.shippingCost === '' || !Number.isFinite(shippingCost) || shippingCost < 0) return { error: 'SHIPPING_PRICE_INVALID' };
   return { product, governorate, unitPrice, shippingCost };
 }
 
