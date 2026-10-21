@@ -384,7 +384,7 @@
         button.addEventListener('click', async () => {
           try {
             const user = authKnown ? currentUser : await initialAuth;
-            sessionStorage.setItem('selectedColor', JSON.stringify({ order: color.order, img: color.img, colorName: color.colorName, colorNameAR: color.colorNameAR, colorCode: color.colorCode }));
+            sessionStorage.setItem('selectedColor', JSON.stringify({ id: color.id, order: color.order, img: color.img, colorName: color.colorName, colorNameAR: color.colorNameAR, colorCode: color.colorCode }));
             if (!user) { window.location.href = './login.html'; return; }
             if (!getValidSelectedProduct()) { window.location.href = './inventory.html'; return; }
             window.location.href = './confirmation-order.html';
