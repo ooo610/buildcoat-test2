@@ -14,7 +14,18 @@ export default async function handler(req, res) {
 
   try {
     const records = await getPriceRecords(productId, governorateId);
-    if (records.error) return json(res, 422, { success: false, code: records.error, error: 'The selected product or delivery area is unavailable.' });
+    if (records.error) {
+      const messages = {
+        PRODUCT_NOT_FOUND: 'The selected product is no longer available.',
+        PRODUCT_INACTIVE: 'The selected product is inactive.',
+        GOVERNORATE_NOT_FOUND: 'The selected governorate is no longer available.',
+        GOVERNORATE_INACTIVE: 'The selected governorate is inactive.',
+        PRODUCT_PRICE_MISSING: 'No unitPrice was found in inventorycms or productsPrices for this product.',
+        PRODUCT_PRICE_INVALID: 'The product unitPrice must be a valid non-negative number.',
+        SHIPPING_PRICE_INVALID: 'The governorate shippingCost must be a valid non-negative number.'
+      };
+      return json(res, 422, { success: false, code: records.error, error: messages[records.error] || 'The selected product or delivery area is unavailable.' });
+    }
     const cost = records.unitPrice * quantity;
     const totalCost = cost + records.shippingCost;
     if (!Number.isFinite(cost) || !Number.isFinite(totalCost)) {
