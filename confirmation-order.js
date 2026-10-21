@@ -370,6 +370,14 @@ function createIdempotencyKey() {
   return idempotencyKey;
 }
 
+function clearPageSessionData() {
+  // Firebase may store a session-only sign-in in sessionStorage. Preserve its
+  // own keys while clearing the page's saved order selections and other data.
+  const firebaseEntries = Object.entries(sessionStorage).filter(([key]) => key.startsWith('firebase:'));
+  sessionStorage.clear();
+  firebaseEntries.forEach(([key, value]) => sessionStorage.setItem(key, value));
+}
+
 async function submitOrder(event) {
   event.preventDefault(); showError();
   if (!formComplete()) {
@@ -398,7 +406,7 @@ async function submitOrder(event) {
       breakdown.classList.remove('hidden'); showError(text.priceChanged); return;
     }
     if (!response.ok || !data.success) throw new Error(data.error || data.code || 'Order submission failed.');
-    sessionStorage.clear();
+    clearPageSessionData();
     const paymentPage = isArabic ? './payment-method-ar.html' : './payment-method.html';
     window.location.assign(`${paymentPage}?orderId=${encodeURIComponent(data.temporaryOrderId)}`);
   } catch (error) {
