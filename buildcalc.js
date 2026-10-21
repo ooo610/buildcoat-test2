@@ -10,7 +10,8 @@ const text = {
   noGovernorates: isArabic ? 'لا توجد محافظات' : 'No governorates available',
   productLoadError: isArabic ? 'تعذر تحميل المنتجات. تحقق من اتصال الإنترنت وصلاحيات قاعدة البيانات.' : 'Could not load products. Check your connection and database access.',
   governorateLoadError: isArabic ? 'تعذر تحميل المحافظات وأسعار الشحن. تحقق من اتصال الإنترنت وصلاحيات قاعدة البيانات.' : 'Could not load governorates and shipping prices. Check your connection and database access.',
-  priceLoadError: isArabic ? 'تعذر تحميل سعر المنتج من قاعدة البيانات.' : 'Could not load the product price from the database.',
+  priceLoadError: isArabic ? 'فشل تحميل السعر من قاعدة البيانات.' : 'Could not read the product price from the database.',
+  pricePermissionError: isArabic ? 'قواعد Firestore تمنع قراءة السعر. اسمح بالقراءة لمجموعة productsPrices.' : 'Firestore denied access to productsPrices. Allow read access to this collection.',
   selectEco: isArabic ? 'الحساب متاح حاليًا لمنتج بيلد كوت إيكو فقط.' : 'Calculations are currently available for BuildCoat Eco only.',
   missingPrice: isArabic ? 'سعر منتج إيكو غير متوفر.' : 'BuildCoat Eco pricing is unavailable.',
   missingShipping: isArabic ? 'سعر شحن المحافظة المختارة غير متوفر.' : 'Shipping price for the selected governorate is unavailable.',
@@ -29,6 +30,8 @@ form.append(status);
 
 let governorates = new Map();
 let unitPrice = null;
+let priceRequest = null;
+let calculationRun = 0;
 
 function showMessage(message = '') {
   status.textContent = message;
@@ -84,7 +87,10 @@ async function loadGovernorates() {
 }
 
 async function loadEcoPrice() {
-  try {
+  if (unitPrice !== null) return unitPrice;
+  if (priceRequest) return priceRequest;
+  priceRequest = (async () => {
+   try {
     const directSnapshot = await getDoc(doc(db, 'productsPrices', 'eco'));
     let priceData = directSnapshot.exists() ? directSnapshot.data() : null;
 
@@ -100,15 +106,22 @@ async function loadEcoPrice() {
       if (ecoPriceDoc) priceData = ecoPriceDoc.data();
     }
 
-    if (priceData && Number.isFinite(Number(priceData.unitPrice))) unitPrice = Number(priceData.unitPrice);
-    else showMessage(text.missingPrice);
-  } catch (error) {
-    console.error('BuildCalc price loading failed:', error);
-    showMessage(text.priceLoadError);
-  }
+    if (priceData && priceData.unitPrice !== undefined && Number.isFinite(Number(priceData.unitPrice))) {
+      unitPrice = Number(priceData.unitPrice);
+      return unitPrice;
+    }
+    return null;
+   } catch (error) {
+    console.error('BuildCalc price loading failed:', error.code, error.message, error);
+    throw error;
+   }
+  })();
+  try { return await priceRequest; }
+  finally { priceRequest = null; }
 }
 
-function calculateLive() {
+async function calculateLive() {
+  const run = ++calculationRun;
   showMessage();
   const width = Number(document.getElementById('facade-width').value);
   const height = Number(document.getElementById('facade-height').value);
@@ -133,17 +146,25 @@ function calculateLive() {
     showMessage(text.selectEco);
     return;
   }
-  if (unitPrice === null) {
-    resultSection.classList.add('hidden');
-    showMessage(text.missingPrice);
-    return;
-  }
   if (!Number.isFinite(Number(governorate.shippingCost))) {
     resultSection.classList.add('hidden');
     showMessage(text.missingShipping);
     return;
   }
 
+  resultSection.classList.add('hidden');
+  try {
+    const currentUnitPrice = await loadEcoPrice();
+    if (run !== calculationRun) return;
+    if (currentUnitPrice === null) {
+      showMessage(text.missingPrice);
+      return;
+    }
+  } catch (error) {
+    if (run !== calculationRun) return;
+    showMessage(error?.code === 'permission-denied' ? text.pricePermissionError : `${text.priceLoadError} (${error?.code || 'unknown'})`);
+    return;
+  }
   const sacks = Math.ceil((width * height * count) / 5);
   const cost = sacks * unitPrice;
   const shipping = Number(governorate.shippingCost);
@@ -158,4 +179,4 @@ form.addEventListener('submit', event => event.preventDefault());
 ['facade-width', 'facade-height', 'facade-count'].forEach(id => document.getElementById(id).addEventListener('input', calculateLive));
 productSelect.addEventListener('change', calculateLive);
 governorateSelect.addEventListener('change', calculateLive);
-Promise.all([loadProducts(), loadGovernorates(), loadEcoPrice()]);
+Promise.all([loadProducts(), loadGovernorates()]);
