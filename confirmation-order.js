@@ -371,11 +371,12 @@ function createIdempotencyKey() {
 }
 
 function clearPageSessionData() {
-  // Firebase may store a session-only sign-in in sessionStorage. Preserve its
-  // own keys while clearing the page's saved order selections and other data.
-  const firebaseEntries = Object.entries(sessionStorage).filter(([key]) => key.startsWith('firebase:'));
-  sessionStorage.clear();
-  firebaseEntries.forEach(([key, value]) => sessionStorage.setItem(key, value));
+  // Firebase's browserSessionPersistence stores the sign-in in sessionStorage.
+  // Remove page data in place; never clear/recreate the Firebase auth entry.
+  for (let index = sessionStorage.length - 1; index >= 0; index -= 1) {
+    const key = sessionStorage.key(index);
+    if (key && !key.startsWith('firebase:')) sessionStorage.removeItem(key);
+  }
 }
 
 async function submitOrder(event) {
