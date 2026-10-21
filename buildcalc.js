@@ -85,8 +85,22 @@ async function loadGovernorates() {
 
 async function loadEcoPrice() {
   try {
-    const snapshot = await getDoc(doc(db, 'productsPrices', 'eco'));
-    if (snapshot.exists() && Number.isFinite(Number(snapshot.data().unitPrice))) unitPrice = Number(snapshot.data().unitPrice);
+    const directSnapshot = await getDoc(doc(db, 'productsPrices', 'eco'));
+    let priceData = directSnapshot.exists() ? directSnapshot.data() : null;
+
+    // Firestore document IDs can differ in capitalization or use a product name.
+    if (!priceData || !Number.isFinite(Number(priceData.unitPrice))) {
+      const snapshot = await getDocs(collection(db, 'productsPrices'));
+      const ecoPriceDoc = snapshot.docs.find(item => {
+        const data = item.data();
+        const identifiers = [item.id, data.productId, data.product, data.name, data.name_en, data.name_ar, data.productName]
+          .filter(value => typeof value === 'string').map(value => value.trim().toLowerCase());
+        return identifiers.some(value => value === 'eco' || value.includes('buildcoat eco') || value.includes('إيكو'));
+      });
+      if (ecoPriceDoc) priceData = ecoPriceDoc.data();
+    }
+
+    if (priceData && Number.isFinite(Number(priceData.unitPrice))) unitPrice = Number(priceData.unitPrice);
     else showMessage(text.missingPrice);
   } catch (error) {
     console.error('BuildCalc price loading failed:', error);
