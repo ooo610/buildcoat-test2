@@ -35,11 +35,12 @@ function showMessage(message = '') {
   status.hidden = !message;
 }
 
-function addOption(select, value, label, disabled = false) {
+function addOption(select, value, label, disabled = false, selected = false) {
   const option = document.createElement('option');
   option.value = value;
   option.textContent = label;
   option.disabled = disabled;
+  option.selected = selected;
   select.append(option);
 }
 
@@ -72,7 +73,7 @@ async function loadGovernorates() {
       .sort((a, b) => (isArabic ? a.nameAr : a.nameEn).localeCompare(isArabic ? b.nameAr : b.nameEn));
     governorates = new Map(places.map(place => [place.id, place]));
     governorateSelect.replaceChildren();
-    addOption(governorateSelect, '', places.length ? text.chooseGovernorate : text.noGovernorates, true);
+    addOption(governorateSelect, '', places.length ? text.chooseGovernorate : text.noGovernorates, true, true);
     places.forEach(place => addOption(governorateSelect, place.id, (isArabic ? place.nameAr : place.nameEn).trim()));
   } catch (error) {
     console.error('BuildCalc governorate loading failed:', error);
