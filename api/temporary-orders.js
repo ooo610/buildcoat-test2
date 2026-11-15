@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { auth, db, FieldValue, getPriceRecords, getQuantity, json, setApiHeaders } from '../server/firebase-admin.js';
 
-const TEMP_ORDER_TTL_MS = 30 * 60 * 1000;
+const TEMP_ORDER_TTL_MS = 15 * 60 * 1000;
 const clean = (value, limit) => typeof value === 'string' ? value.trim().slice(0, limit) : '';
 const amount = value => Number.isFinite(Number(value)) && Number(value) >= 0 ? Number(value) : null;
 
