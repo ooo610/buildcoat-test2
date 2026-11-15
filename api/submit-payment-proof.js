@@ -40,9 +40,11 @@ export default async function handler(req, res) {
       const { expiresAt, ...orderDetails } = temp;
       const finalOrder = {
         ...orderDetails,
+        img: temp.img || temp.color?.img || '',
         paymentReceiptUrl: receiptUrl,
         paymentSenderInfo: senderInfo,
         paymentSubmittedAt: FieldValue.serverTimestamp(),
+        completedAt: FieldValue.serverTimestamp(),
         status: 'Pending Approval',
         createdAt: FieldValue.serverTimestamp()
       };
@@ -50,7 +52,7 @@ export default async function handler(req, res) {
       transaction.update(tempRef, {
         status: 'Pending Approval', finalOrderId: userOrderRef.id,
         paymentReceiptUrl: receiptUrl, paymentSenderInfo: senderInfo,
-        paymentSubmittedAt: FieldValue.serverTimestamp()
+        paymentSubmittedAt: FieldValue.serverTimestamp(), completedAt: FieldValue.serverTimestamp()
       });
       return { orderId: userOrderRef.id, created: true };
     });
