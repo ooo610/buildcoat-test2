@@ -71,7 +71,9 @@ function renderOptions(data) {
   let first = true;
   if (methods.allowCOD) { list.append(optionCard({ method: 'cod', label: text.cod, amountLabel: text.codAmount, checked: first })); first = false; }
   const depositAllowed = methods.depositPercent > 0;
-  const fullAllowed = methods.allowFullPayment && !methods.depositRequired;
+  // A required deposit means the deposit option must be offered; it does not
+  // prevent customers from paying the full amount when the policy allows it.
+  const fullAllowed = methods.allowFullPayment === true;
   const addDigital = (method, title) => {
     if (method === 'instapay' ? !methods.allowInstaPay : !methods.allowEWallet) return;
     const group = document.createElement('div'); group.className = 'space-y-3';
