@@ -1,8 +1,10 @@
 {
-  "crons": [
-    {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "schedules": {
+    "cleanup-temporary-orders": {
+      "schedule": "*/15 * * * *",
       "path": "/api/cleanup-temporary-orders",
-      "schedule": "* * * * *"
+      "requestMethod": "GET"
     }
-  ]
+  }
 }
