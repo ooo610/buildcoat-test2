@@ -140,6 +140,7 @@ async function continuePayment(event) {
     response = await fetch(`${api}/select-payment`, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, body: JSON.stringify({ temporaryOrderId: orderId, tier: paymentData.tier, method, paymentType }) });
     data = await response.json();
     if (!response.ok || !data.success) throw new Error(apiError(data, text.redirectError));
+    try { sessionStorage.setItem('activePaymentOrderId', orderId); } catch (error) { console.error('Could not preserve payment order:', error); }
     const destination = isArabic ? './payment-confirmation-ar.html' : './payment-confirmation.html';
     location.assign(`${destination}?orderId=${encodeURIComponent(orderId)}&method=${encodeURIComponent(method)}&paymentType=${encodeURIComponent(paymentType)}`);
   } catch (error) {

@@ -3,7 +3,11 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/12.17.1/f
 
 const isArabic = document.documentElement.lang === 'ar';
 const api = 'https://buildcoat-test2.vercel.app/api';
-const orderId = new URLSearchParams(location.search).get('orderId') || '';
+let orderId = new URLSearchParams(location.search).get('orderId') || '';
+if (!orderId) {
+  try { orderId = sessionStorage.getItem('activePaymentOrderId') || ''; } catch (error) { console.error('Could not restore payment order:', error); }
+  if (orderId) history.replaceState(null, '', `${location.pathname}?orderId=${encodeURIComponent(orderId)}`);
+}
 const $ = id => document.getElementById(id);
 const languagePage = isArabic ? './payment-confirmation.html' : './payment-confirmation-ar.html';
 document.querySelectorAll(`header a[href="${languagePage}"]`).forEach(link => {
@@ -20,9 +24,11 @@ const copy = isArabic ? {
   hintInsta: 'مثال: 123@instapay', hintWallet: 'أدخل رقم الهاتف المرتبط بالمحفظة.',
   chooseFile: 'اختر صورة الإيصال', fileHelp: 'JPG أو PNG، بحد أقصى 2 ميجابايت', fileError: 'اختر صورة بصيغة JPG أو PNG أو WebP لا يتجاوز حجمها 2 ميجابايت.',
   receiptInsta: 'ارفع صورة إيصال التحويل من إنستا باي', receiptWallet: 'ارفع صورة رسالة التحويل من شركة الاتصالات',
-  uploading: 'جارٍ رفع الإيصال…', submitting: 'جارٍ إرسال إثبات الدفع…', uploadError: 'تعذر رفع الإيصال. حاول مرة أخرى.',
+  uploading: 'جارٍ رفع الإيصال…', submitting: 'جارٍ تأكيد الطلب…', uploadError: 'تعذر رفع الإيصال. حاول مرة أخرى.',
   submitError: 'تعذر إرسال إثبات الدفع. حاول مرة أخرى.', authRequired: 'انتهت جلسة الدخول. سجّل الدخول وحاول مرة أخرى.',
-  alreadyFinalized: 'تم إرسال إثبات الدفع لهذا الطلب بالفعل.', genericError: 'حدث خطأ. حاول مرة أخرى.'
+  alreadyFinalized: 'تم إرسال إثبات الدفع لهذا الطلب بالفعل.', genericError: 'حدث خطأ. حاول مرة أخرى.',
+  confirmOrder: 'تأكيد الطلب', successTitle: 'تم إنشاء طلبك بنجاح',
+  successMessage: 'يستغرق تأكيد الطلب من قبل الإدارة يومًا أو يومين عمل.'
 } : {
   loading: 'Loading payment details…', noOrder: 'Order details are missing. Return to payment selection and try again.', signIn: 'Sign in to view payment details.',
   expired: 'Your order has expired. Return and start a new order.', loadError: 'Could not load payment details. Please try again.',
@@ -34,9 +40,11 @@ const copy = isArabic ? {
   hintInsta: 'Example: 123@instapay', hintWallet: 'Enter the phone number linked to your wallet.',
   chooseFile: 'Choose a receipt image', fileHelp: 'JPG or PNG, up to 2 MB', fileError: 'Choose a JPG, PNG, or WebP image no larger than 2 MB.',
   receiptInsta: 'Upload your InstaPay transfer receipt', receiptWallet: 'Upload the transfer confirmation message from your mobile carrier',
-  uploading: 'Uploading receipt…', submitting: 'Submitting payment proof…', uploadError: 'Could not upload the receipt. Please try again.',
+  uploading: 'Uploading receipt…', submitting: 'Confirming your order…', uploadError: 'Could not upload the receipt. Please try again.',
   submitError: 'Could not submit payment proof. Please try again.', authRequired: 'Your sign-in session expired. Sign in and try again.',
-  alreadyFinalized: 'Payment proof has already been submitted for this order.', genericError: 'Something went wrong. Please try again.'
+  alreadyFinalized: 'Payment proof has already been submitted for this order.', genericError: 'Something went wrong. Please try again.',
+  confirmOrder: 'Confirm order', successTitle: 'Your order was created successfully',
+  successMessage: 'Order confirmation by our team takes one or two business days.'
 };
 
 let currentUser = null;
@@ -74,6 +82,9 @@ function renderPayment(data) {
   $('receipt-label').textContent = isInstaPay ? copy.receiptInsta : copy.receiptWallet;
   $('file-prompt').textContent = copy.chooseFile;
   $('file-name').textContent = copy.fileHelp;
+  $('submit-proof').textContent = copy.confirmOrder;
+  $('success-title').textContent = copy.successTitle;
+  $('success-message').textContent = copy.successMessage;
   $('payment-form').classList.remove('hidden');
   showStatus('');
 }
@@ -138,6 +149,7 @@ async function submitProof(event) {
     const data = await response.json();
     if (!response.ok || !data.success) throw Object.assign(new Error('SUBMISSION_FAILED'), { code: data.code });
     $('payment-form').classList.add('hidden');
+    try { sessionStorage.removeItem('activePaymentOrderId'); } catch (error) { console.error('Could not clear submitted payment order:', error); }
     $('success-order-number').textContent = data.orderId;
     $('payment-success').classList.remove('hidden');
     showStatus('');
@@ -145,7 +157,7 @@ async function submitProof(event) {
     console.error('Payment proof submission failed:', error);
     setError(error.code ? apiMessage(error.code, copy.submitError) : copy.uploadError);
   } finally {
-    button.textContent = isArabic ? 'إرسال إثبات التحويل' : 'Submit transfer proof';
+    button.textContent = copy.confirmOrder;
     if (!$('payment-form').classList.contains('hidden')) button.disabled = false;
   }
 }
